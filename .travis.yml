@@ -22,7 +22,7 @@ script:
 # 分支白名单
 branches:
   only:
-    - master # 只对 master 分支进行构建
+    - hexo # 只对 master 分支进行构建
 
 # GitHub Pages 部署
 deploy:
@@ -30,10 +30,11 @@ deploy:
   skip_cleanup: true
   # 在项目仪表盘的 Settings -> Environment Variables 中配置
   github_token: $GITHUB_TOKEN
-  # 将 build 目录下的内容推送到默认的 gh-pages 分支上，并不会连带 build 目录一起
+  # 将 build 目录下的内容推送到默认的 master 分支上，并不会连带 build 目录一起
+  target_branch: master
   local_dir: public
   on:
-    branch: master
+    branch: hexo
 
 # 通知
 notifications:
