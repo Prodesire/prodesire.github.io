@@ -5,7 +5,7 @@
 # Site
 title: Prodesire
 subtitle:
-description: Prodesire's Blog
+description: Prodesire 的博客
 keywords:
 author: Prodesire
 language: zh-CN
@@ -13,7 +13,7 @@ timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: http://prodesire.cn
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
