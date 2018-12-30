@@ -18,6 +18,7 @@ install:
 # 构建脚本
 script:
   - hexo g
+  - cp CNAME public/
 
 # 分支白名单
 branches:
@@ -30,7 +31,7 @@ deploy:
   skip_cleanup: true
   # 在项目仪表盘的 Settings -> Environment Variables 中配置
   github_token: $GITHUB_TOKEN
-  # 将 build 目录下的内容推送到默认的 master 分支上，并不会连带 build 目录一起
+  # 将 public 目录下的内容推送到默认的 master 分支上，并不会连带 public 目录一起
   target_branch: master
   local_dir: public
   on:
