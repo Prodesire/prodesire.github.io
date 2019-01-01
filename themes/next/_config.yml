@@ -543,7 +543,7 @@ valine:
 # Gitment
 # Introduction: https://imsun.net/posts/gitment-introduction
 gitment:
-  enable: true
+  enable: false
   mint: true # RECOMMEND, A mint on Gitment, to support count, language and proxy_gateway
   count: true # Show comments count in post meta area
   lazy: false # Comments lazy loading with a button
@@ -560,12 +560,12 @@ gitment:
 # Demo: https://gitalk.github.io
 # Reference: https://asdfv1929.github.io/2018/01/20/gitalk/, https://liujunzhou.cn/2018/8/10/gitalk-error/#more
 gitalk:
-  enable: false
-  github_id:  # Github repo owner
-  repo:  # Repository name to store issues.
-  client_id:  # Github Application Client ID
-  client_secret:  # Github Application Client Secret
-  admin_user:  # GitHub repo owner and collaborators, only these guys can initialize github issues
+  enable: true
+  github_id: Prodesire # Github repo owner
+  repo: prodesire.github.io # Repository name to store issues.
+  client_id: 989724c3ee5451c2d5f3 # Github Application Client ID
+  client_secret: e731fc7da94842fa1abe2527a92bd4cafee9b0ee # Github Application Client Secret
+  admin_user: Prodesire # GitHub repo owner and collaborators, only these guys can initialize github issues
   distraction_free_mode: true # Facebook-like distraction free mode
 
 # Baidu Share
