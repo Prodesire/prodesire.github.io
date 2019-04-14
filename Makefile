@@ -14,3 +14,6 @@ init:
 
 run:
 	hexo server
+
+new:
+	hexo new $(filter-out $@,$(MAKECMDGOALS))
