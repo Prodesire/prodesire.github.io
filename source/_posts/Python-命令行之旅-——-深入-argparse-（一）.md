@@ -9,7 +9,7 @@ categories:
   - 命令行
 ---
 
-本文首发于 [HelloGitHub](https://mp.weixin.qq.com/s/Guz0xDOArbrVGCZMCwx2cg) 公众号。
+本文首发于 [HelloGitHub](https://mp.weixin.qq.com/s/WA--NZ2TPuIaIj4jnKZS6A) 公众号。
 
 ## 前言
 
