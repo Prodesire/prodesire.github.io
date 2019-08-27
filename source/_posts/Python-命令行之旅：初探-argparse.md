@@ -1,5 +1,5 @@
 ---
-title: Python 命令行之旅 —— 初探 argparse
+title: Python 命令行之旅：初探 argparse
 date: 2019-08-13 20:58:13
 tags:
   - Python
@@ -17,8 +17,9 @@ categories:
 
 别着急，本文作为 Python 命令行之旅的第一篇将带你逐步揭开命令行解析的面纱，介绍如何使用 Python 内置的 `argparse` 标准库解析命令行，并在后续的系列文章中介绍各具特色的第三方命令行库，讲讲它们的异同，进而全面地体验这次探索的旅程。
 
-```note
-本系列文章默认使用 Python 3 作为解释器进行讲解，若你仍在使用 Python 2，请注意两者之间语法和库的使用差异哦~
+```
+本系列文章默认使用 Python 3 作为解释器进行讲解。
+若你仍在使用 Python 2，请注意两者之间语法和库的使用差异哦~
 ```
 
 ## 介绍
@@ -109,21 +110,21 @@ print(result)
 
 若我们需要对一组数字求和，只需执行：
 
-```console
+```bash
 $ python3 cmd.py --sum -1 0 1
 0
 ```
 
 若我们需要对一组数字求最大值，只需执行：
 
-```console
+```bash
 $ python3 cmd.py -1 0 1
 1
 ```
 
 如果给定的参数不是数字，则会报错提示：
 
-```console
+```bash
 $ python3 cmd.py a b c
 usage: cmd.py [-h] [--sum] num [num ...]
 cmd.py: error: argument num: invalid int value: 'a'
@@ -131,7 +132,7 @@ cmd.py: error: argument num: invalid int value: 'a'
 
 我们还可以通过 `-h` 或 `--help` 参数查看其自动生成的使用说明和帮助：
 
-```console
+```bash
 usage: cmd.py [-h] [--sum] num [num ...]
 
 My Cmd Line Program
@@ -154,4 +155,6 @@ optional arguments:
 
 ## 相关文章
 
-- {% post_link Python-命令行之旅-——-深入-argparse-（一） %}
+- {% post_link Python-命令行之旅：深入-argparse（一） %}
+- {% post_link Python-命令行之旅：深入-argparse（二） %}
+  
