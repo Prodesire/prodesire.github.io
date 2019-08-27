@@ -47,6 +47,8 @@ usage: [--foo FOO]
 : error: unrecognized arguments: -h
 ```
 
+<!--more-->
+
 ### 自定义帮助
 `ArgumentParser` 使用 `formatter_class` 入参来控制所输出的帮助格式。
 比如，通过指定 `formatter_class=argparse.RawTextHelpFormatter`，我们可以让帮助内容遵循原始格式：

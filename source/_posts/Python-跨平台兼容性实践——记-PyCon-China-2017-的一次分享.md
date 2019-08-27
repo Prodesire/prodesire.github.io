@@ -22,6 +22,8 @@ categories:
 
 为什么要做跨平台兼容性？
 
+<!--more-->
+
 我们的产品部署架构如下：
 {% asset_img deployment-architecture.png %}
 

@@ -40,6 +40,8 @@ parser = argparse.ArgumentParser(
 )
 ```
 
+<!--more-->
+
 ### 定义参数
 
 通过 `ArgumentParser.add_argument` 方法来为解析器设置参数信息，以告诉解析器命令行字符串中的哪些内容应解析为哪些类型的 Python 对象，如：
