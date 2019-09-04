@@ -9,11 +9,15 @@ categories:
   - 命令行
 ---
 
+本文首发于 [HelloGitHub](https://mp.weixin.qq.com/s/o7wlp4EEkFGwN-snXU03aQ) 公众号。
+
 ## 前言
 
 在前面三篇介绍 `argparse` 的文章中，我们全面了解了 `argparse` 的能力，相信不少小伙伴们都已经摩拳擦掌，想要打造一个属于自己的命令行工具。
 
 本文将以我们日常工作中最常见的 `git` 命令为例，讲解如何使用 `argparse` 库来实现一个真正可用的命令行程序。
+
+<!--more-->
 
 ```plain
 本系列文章默认使用 Python 3 作为解释器进行讲解。
