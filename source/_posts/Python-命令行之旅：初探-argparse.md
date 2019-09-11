@@ -17,6 +17,8 @@ categories:
 
 别着急，本文作为 Python 命令行之旅的第一篇将带你逐步揭开命令行解析的面纱，介绍如何使用 Python 内置的 `argparse` 标准库解析命令行，并在后续的系列文章中介绍各具特色的第三方命令行库，讲讲它们的异同，进而全面地体验这次探索的旅程。
 
+<!--more-->
+
 ```
 本系列文章默认使用 Python 3 作为解释器进行讲解。
 若你仍在使用 Python 2，请注意两者之间语法和库的使用差异哦~
@@ -39,8 +41,6 @@ parser = argparse.ArgumentParser(
     description='My Cmd Line Program',
 )
 ```
-
-<!--more-->
 
 ### 定义参数
 
@@ -159,4 +159,3 @@ optional arguments:
 
 - {% post_link Python-命令行之旅：深入-argparse（一） %}
 - {% post_link Python-命令行之旅：深入-argparse（二） %}
-  
