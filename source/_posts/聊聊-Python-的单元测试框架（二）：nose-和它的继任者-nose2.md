@@ -10,6 +10,8 @@ categories:
   - 单元测试
 ---
 
+本文首发于 [HelloGitHub](https://mp.weixin.qq.com/s/cVKNQmEMo-yHVCfyikQSLA) 公众号。
+
 ## 一、nose
 
 [nose](https://nose.readthedocs.io/en/latest/) 是一个第三方单元测试框架，它**完全兼容 `unittest`**，并且号称是一个更好用的测试框架。
