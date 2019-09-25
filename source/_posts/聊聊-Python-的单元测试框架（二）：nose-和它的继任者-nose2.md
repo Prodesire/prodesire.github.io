@@ -4,7 +4,8 @@ date: 2019-09-17 08:30:21
 tags:
   - Python
   - 单元测试
-  - unittest
+  - nose
+  - nose2
 categories:
   - Python
   - 单元测试
