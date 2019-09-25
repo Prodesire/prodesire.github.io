@@ -301,3 +301,8 @@ FAILED (failures=1)
 [unittest](https://docs.python.org/3/library/unittest.html) 作为 Python 标准库提供的单元测试框架，使用简单、功能强大，日常测试需求均能得到很好的满足。在不引入第三方库的情况下，是单元测试的不二之选。
 
 在下篇文章中，我们将介绍第三方单元测试框架 `nose` 和 `nose2`，讲讲它对比于 `unittest` 有哪些改进，以至于让很多开发人员优先选择了它。
+
+## 相关文章
+
+- {% post_link 聊聊-Python-的单元测试框架（二）：nose-和它的继任者-nose2 %}
+- {% post_link 聊聊-Python-的单元测试框架（三）：最火的-pytest %}
