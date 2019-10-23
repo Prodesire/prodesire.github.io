@@ -6,9 +6,10 @@ tags:
   - Salt
   - SaltStack
   - Windows
+  - DevOps
 categories:
-  - Python
-  - 运维
+  - DevOps
+  - SaltStack
 ---
 
 （备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。）
