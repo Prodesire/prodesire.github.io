@@ -16,7 +16,7 @@ Hello，我是 Prodesire！作为 Python 爱好者，同时也是重度使用者
 
 # 演讲和讲义
 
-2019 PyConChina 出品人
+2019 PyConChina 杭州场：[Asyncio 在云服务自动化测试中的应用](https://cn.pycon.org/2019/)
 2018 PyConChina 杭州场：[《Python 源码加密》](http://cn.pycon.org/2018/city_hangzhou.html)
 &emsp;&emsp;&ensp;HZPUG 线下沙龙：[《如何开始一个开源 Python 项目》](https://github.com/HZPUG/HZPUG.github.io/blob/master/lectures/2018-06-30/如何开始一个开源Python项目.pdf)
 2017 PyConChina 杭州场：《Python 跨平台兼容性实践》
