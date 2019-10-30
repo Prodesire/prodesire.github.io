@@ -339,3 +339,13 @@ These are common Git commands used in various situations:
 如果我很熟悉命令行帮助语法，我能不能写个帮助字符串就把所有的命令行元信息给定义出来？然后就直接轻松愉快地获取解析后的参数信息呢？
 
 在下篇文章中，将为大家讲解另一个站在一个全新的思路，又无比强大的库 `docopt`。
+
+## 相关文章
+
+- {% post_link Python-命令行之旅：初探-argparse %}
+- {% post_link Python-命令行之旅：深入-argparse（一） %}
+- {% post_link Python-命令行之旅：深入-argparse（二） %}
+- {% post_link Python-命令行之旅：使用-argparse-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-docopt %}
+- {% post_link Python-命令行之旅：深入-docopt %}
+- {% post_link Python-命令行之旅：使用-docopt-实现-git-命令 %}

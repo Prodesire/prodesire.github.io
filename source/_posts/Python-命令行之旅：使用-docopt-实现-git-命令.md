@@ -258,3 +258,13 @@ def handle_push(git):
 但人类的智慧是多么璀璨呀，有些人并不喜欢这两个库的使用方式，于是他们有开辟了一个全新的思路。
 
 在下篇文章中，将为大家介绍一个在 Python 界十分流行的命令行库 —— `click`。
+
+## 相关文章
+
+- {% post_link Python-命令行之旅：初探-argparse %}
+- {% post_link Python-命令行之旅：深入-argparse（一） %}
+- {% post_link Python-命令行之旅：深入-argparse（二） %}
+- {% post_link Python-命令行之旅：使用-argparse-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-docopt %}
+- {% post_link Python-命令行之旅：深入-docopt %}
+- {% post_link Python-命令行之旅：使用-docopt-实现-git-命令 %}

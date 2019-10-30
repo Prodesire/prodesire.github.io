@@ -352,3 +352,13 @@ Other: --bad  # 坏, 没有以 "-" 开头
 两者站在的维度不同，编程的套路也不尽相同，甚是有趣。
 
 了解了这么多，也该练练手了。在下篇文章中，我们仍然会以 `git` 命令作为实战项目，看看如何使用 `docopt` 来实现 `git` 命令。
+
+## 相关文章
+
+- {% post_link Python-命令行之旅：初探-argparse %}
+- {% post_link Python-命令行之旅：深入-argparse（一） %}
+- {% post_link Python-命令行之旅：深入-argparse（二） %}
+- {% post_link Python-命令行之旅：使用-argparse-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-docopt %}
+- {% post_link Python-命令行之旅：深入-docopt %}
+- {% post_link Python-命令行之旅：使用-docopt-实现-git-命令 %}

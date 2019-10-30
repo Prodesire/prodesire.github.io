@@ -152,3 +152,13 @@ $ python3 cmd.py 1 0 -1
 `docopt` 的思路非常简单，就是定义接口描述，然后帮你解析命令行为参数字典，接下来就根据这个字典来编写业务逻辑。
 
 重点就是在于如何定义接口描述，在下一篇文章中，我们来深入了解下如何定义命令、选项、位置参数等接口描述。
+
+## 相关文章
+
+- {% post_link Python-命令行之旅：初探-argparse %}
+- {% post_link Python-命令行之旅：深入-argparse（一） %}
+- {% post_link Python-命令行之旅：深入-argparse（二） %}
+- {% post_link Python-命令行之旅：使用-argparse-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-docopt %}
+- {% post_link Python-命令行之旅：深入-docopt %}
+- {% post_link Python-命令行之旅：使用-docopt-实现-git-命令 %}
