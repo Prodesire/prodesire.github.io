@@ -184,3 +184,15 @@ hello.txt
 本文讲解了 `click` 中基本参数的用法，在此基础上介绍了各种类型的参数，最后说明了从环境变量中获取参数值的写法。
 
 在下一篇文章中，我们来继续深入了解 `click` 的功能，看看它都支持什么样的“选项”。
+
+## 相关文章
+
+- {% post_link Python-命令行之旅：初探-argparse %}
+- {% post_link Python-命令行之旅：深入-argparse（一） %}
+- {% post_link Python-命令行之旅：深入-argparse（二） %}
+- {% post_link Python-命令行之旅：使用-argparse-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-docopt %}
+- {% post_link Python-命令行之旅：深入-docopt %}
+- {% post_link Python-命令行之旅：使用-docopt-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-click %}
+- {% post_link Python-命令行之旅：深入-click（一） %}
