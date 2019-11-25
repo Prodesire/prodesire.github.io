@@ -365,3 +365,4 @@ Other: --bad  # 坏, 没有以 "-" 开头
 - {% post_link Python-命令行之旅：初探-click %}
 - {% post_link Python-命令行之旅：深入-click（一） %}
 - {% post_link Python-命令行之旅：深入-click（二） %}
+- {% post_link Python-命令行之旅：深入-click（三） %}
