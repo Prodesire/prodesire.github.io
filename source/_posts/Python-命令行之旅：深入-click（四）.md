@@ -19,6 +19,8 @@ categories:
 若你仍在使用 Python 2，请注意两者之间语法和库的使用差异哦~
 ```
 
+<!--more-->
+
 ## 增强功能
 
 ### Bash 补全
@@ -306,3 +308,18 @@ with click.progressbar(all_the_users_to_process) as bar:
 `click` 提供了非常多的增强型功能，本文着重介绍了它的 Bash 补全和十多个实用工具，这会让你在实现命令行的过程中如虎添翼。此外，`click` 还提供了诸如命令别名、参数修改、标准化令牌、调用其他命令、回调顺序等诸多[高级模式](https://click.palletsprojects.com/en/7.x/advanced/) 以应对更加复杂或特定的场景，我们就不再深入介绍。
 
 `click` 的介绍就告一段落，它将会是你编写命令行程序的一大利器。在下一篇文章中，我们依然会通过实现一个简单的 `git` 程序来进行 `click` 的实战。
+
+## 相关文章
+
+- {% post_link Python-命令行之旅：初探-argparse %}
+- {% post_link Python-命令行之旅：深入-argparse（一） %}
+- {% post_link Python-命令行之旅：深入-argparse（二） %}
+- {% post_link Python-命令行之旅：使用-argparse-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-docopt %}
+- {% post_link Python-命令行之旅：深入-docopt %}
+- {% post_link Python-命令行之旅：使用-docopt-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-click %}
+- {% post_link Python-命令行之旅：深入-click（一） %}
+- {% post_link Python-命令行之旅：深入-click（二） %}
+- {% post_link Python-命令行之旅：深入-click（三） %}
+- {% post_link Python-命令行之旅：深入-click（四） %}
