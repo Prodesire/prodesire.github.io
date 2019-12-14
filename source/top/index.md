@@ -1,6 +1,10 @@
 <p><div id="top"></div></p>
-<script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
-<script>AV.initialize("r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz", "YcMCWnPYP6XWogWEbRBSNbfI");</script>
+<script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.1.0/dist/av-min.js"></script>
+<script>AV.init({
+  appId: "r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz",
+  appKey: "YcMCWnPYP6XWogWEbRBSNbfI",
+  serverURLs: "https://r5ofsrw8.lc-cn-n1-shared.com",
+})</script>
 <script type="text/javascript">
   var time=0
   var title=""
