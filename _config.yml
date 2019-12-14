@@ -104,3 +104,15 @@ feed:
   type: atom
   path: atom.xml
   limit: 20
+
+# 豆瓣
+douban:
+  user: 48338656
+  builtin: false
+  book:
+    title: "读书"
+    quote: "每一本好书都值得珍藏。"
+  movie:
+    title: "电影"
+    quote: "每一部好电影都值得细品。"
+  timeout: 10000

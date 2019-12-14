@@ -17,6 +17,7 @@ install:
 
 # 构建脚本
 script:
+  - hexo douban -bm
   - hexo g
   - cp CNAME public/
 
