@@ -395,3 +395,4 @@ Namespace(words=['FOO', 'BAR'])
 - {% post_link Python-命令行之旅：深入-click（三） %}
 - {% post_link Python-命令行之旅：深入-click（四） %}
 - {% post_link Python-命令行之旅：使用-click-实现-git-命令 %}
+- {% post_link Python-命令行之旅：初探-fire %}
