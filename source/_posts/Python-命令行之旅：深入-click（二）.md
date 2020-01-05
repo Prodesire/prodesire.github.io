@@ -562,3 +562,4 @@ Dropped all tables!
 - {% post_link Python-命令行之旅：使用-click-实现-git-命令 %}
 - {% post_link Python-命令行之旅：初探-fire %}
 - {% post_link Python-命令行之旅：深入-fire（一） %}
+- {% post_link Python-命令行之旅：深入-fire（二） %}
