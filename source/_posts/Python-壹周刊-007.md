@@ -17,6 +17,8 @@ photos:
 
 [老爹 Guido van Rossum 退出 Python 指导委员会](https://www.python.org/dev/peps/pep-8101/)
 
+<!--more-->
+
 ## 好文共赏
 
 [Python 类型注解](https://kunigami.blog/2019/12/26/python-type-hints/)
