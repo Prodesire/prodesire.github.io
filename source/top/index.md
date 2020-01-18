@@ -19,7 +19,7 @@
       time=result.time;
       title=result.title;
       url=result.url;
-      var content="<p>"+"<font color='#1C1C1C'>"+"【阅读量: "+time+" 】"+"</font>"+"<a href='"+"https://prodesire.cn"+url+"'>"+title+"</a>"+"</p>";
+      var content="<p>"+"<font color='#1C1C1C'>"+"【热度 "+time+"℃ 】"+"</font>"+"<a href='"+"https://prodesire.cn"+url+"'>"+title+"</a>"+"</p>";
       document.getElementById("top").innerHTML+=content
     }
   }, function (error) {
