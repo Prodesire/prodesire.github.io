@@ -526,3 +526,7 @@ Airflow 会不断加载 dags 目录下的 dag 文件，scheduler 加载 dag 文�
 - [浅谈调度工具——Airflow](https://www.jianshu.com/p/e878bbc9ead2)
 - [理解 Apache Airflow 的关键概念](https://juejin.im/post/5b7ba247e51d4538d42ab6a0)
 - [工作流管理平台 Airflow 入门](https://www.jianshu.com/p/56fe5a271c14)
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

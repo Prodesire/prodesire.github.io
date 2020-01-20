@@ -687,3 +687,7 @@ windows-64:
 另一个环节是开发人员可能需要虚拟机用来测试，那么就会在我们的 CI 服务器上申请创建虚拟机，CI 服务器通过调用 VSphere 接口进行创建。
 
 {% asset_img ci.png %}
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

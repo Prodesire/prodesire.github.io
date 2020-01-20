@@ -355,3 +355,7 @@ test_query_method(db, des='query, method call')
 ```
 
 可以看出，在创建索引的情况下，memlite 的插入和查询性能在 sqlite 和 pydblite 之上；而在未创建索引的情况下，memlite 的插入性能和 sqlite 一样，好于 pydblite，memlite 的查询性能比 pydblite 稍差，但好于 sqlite。综合来看，memlite 即拥有 pydblite 的 pythonic 的使用方式，又拥有 pydblite 和 sqlite 中性能较高者的效率，符合预期的优化目标。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

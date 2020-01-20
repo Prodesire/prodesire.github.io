@@ -702,3 +702,7 @@ static PyMemberDef code_memberlist[] = {
 1. 如何防止通过内存操作的方式找到对象的co_code?
 2. 如何进一步提升私钥被逆向工程探知的难度？
 3. 如何能在调试并希望看到源码的时候看到?
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

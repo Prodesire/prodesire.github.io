@@ -105,3 +105,7 @@ salt 无法启动，错误结果如图：
 ## 总结
 
 在低版本的系统上，可能会有各种各样想不到的坑。再次做个记录留作备忘，也给将来可能踩坑的同学借鉴经验。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

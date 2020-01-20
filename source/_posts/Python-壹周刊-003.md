@@ -122,3 +122,7 @@ objgraph 帮助直观地浏览 Python 对象图的模块。
 [Minecraft](https://github.com/fogleman/Minecraft)
 
 用 Python 和 Pyglet 编写的 Minecraft 简单 demo。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

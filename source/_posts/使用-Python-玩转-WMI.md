@@ -262,3 +262,7 @@ print(websites)
 ## 总结
 
 使用 Python 操作 WMI，最大的难点并不在于如何编写 Python 语句，而在于如果获知想要查询的内容在哪个名称空间以及对应的类和属性。而这些内容则需要查阅官方文档以及使用 wbemtest 进行探索。获得了这些必要的信息后，再去编写 Python 代码就是一件非常轻松的事情。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

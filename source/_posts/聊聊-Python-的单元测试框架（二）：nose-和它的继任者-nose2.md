@@ -194,3 +194,7 @@ def func(arg):
 
 - {% post_link 聊聊-Python-的单元测试框架（一）：unittest %}
 - {% post_link 聊聊-Python-的单元测试框架（三）：最火的-pytest %}
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

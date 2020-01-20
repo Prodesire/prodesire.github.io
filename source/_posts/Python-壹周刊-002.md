@@ -198,3 +198,7 @@ Flask Web 矿建中开源的管理仪表盘。
 [Pandera](https://pythonweekly.us2.list-manage.com/track/click?u=e2e180baf855ac797ef407fc7&id=567f9cfa43&e=de9f27bcc4)
 
 Pandas 的统计数据验证工具包。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

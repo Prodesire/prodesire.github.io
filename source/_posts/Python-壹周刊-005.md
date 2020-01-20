@@ -120,3 +120,7 @@ Python 模块依赖可视化。
 [blender-tools](https://github.com/EmbarkStudios/blender-tools)
 
 包含工作流工具，用于游戏开发的 Blender 插件。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

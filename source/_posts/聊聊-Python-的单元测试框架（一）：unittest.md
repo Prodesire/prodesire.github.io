@@ -306,3 +306,7 @@ FAILED (failures=1)
 
 - {% post_link 聊聊-Python-的单元测试框架（二）：nose-和它的继任者-nose2 %}
 - {% post_link 聊聊-Python-的单元测试框架（三）：最火的-pytest %}
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

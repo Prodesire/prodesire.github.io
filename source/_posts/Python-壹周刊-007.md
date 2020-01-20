@@ -132,3 +132,7 @@ FFmpeg 的 Python 绑定，支持复杂的过滤
 [Magic Wormhole](https://github.com/warner/magic-wormhole)
 
 安全地将内容从一台计算机转移到另一台计算机上。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

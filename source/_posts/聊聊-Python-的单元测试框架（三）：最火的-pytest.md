@@ -326,3 +326,7 @@ Python 的单元测试框架看似种类繁多，实则是一代代的进化，�
 
 - {% post_link 聊聊-Python-的单元测试框架（一）：unittest %}
 - {% post_link 聊聊-Python-的单元测试框架（二）：nose-和它的继任者-nose2 %}
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

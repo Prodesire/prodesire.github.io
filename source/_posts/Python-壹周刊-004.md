@@ -134,3 +134,7 @@ cuSignal 使用 CuPy（GPU 加速的 NumPy）和自定义的 Numba CUDA 内核�
 [keyring](https://github.com/jaraco/keyring)
 
 提供了一种从 Python 访问系统密钥环服务的简便方法。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>

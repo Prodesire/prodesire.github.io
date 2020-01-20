@@ -87,3 +87,7 @@ Annoy（[Approximate Nearest Neighbors](http://en.wikipedia.org/wiki/Nearest_nei
 [mimesis](https://github.com/lk-geimfari/mimesis)
 
 Mimesis 是一种快速且极其易于使用的 Python 软件包，可以生成各种目的、多种语言的假数据。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>
