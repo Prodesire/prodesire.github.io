@@ -29,7 +29,7 @@ photos:
 
 [对比 Python、Go 和 C++ 的 N 皇后问题](https://arxiv.org/pdf/2001.02491.pdf)
 
-Python 当前是机器学习领域的主导语言，但经常因执行某些任务的速度慢而受到批评。在本问中，我们使用著名的 N 皇后难题作为基准，来说明一旦使用 Numba 编译器进行编译，它就可以在执行速度上与 C 和 Go 竞争，同时还可以非常快速地制作原型。
+Python 当前是机器学习领域的主导语言，但经常因执行某些任务的速度慢而受到批评。在本文中，我们使用著名的 N 皇后难题作为基准，来说明一旦使用 Numba 编译器进行编译，它就可以在执行速度上与 C 和 Go 竞争，同时还可以非常快速地制作原型。
 
 [使用 codemod 将 unittest 断言转换为 Python 断言](https://medium.com/kolonial-no-product-tech/codemodding-python-unittest-asserts-to-python-asserts-dbf4d1da8c0)
 
