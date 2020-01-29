@@ -157,3 +157,7 @@ SyntaxWarning: "is" with a literal. Did you mean "=="?
 
 - 当要比较值是否相等时，请用 `==`。
 - 当要比较是否是同一个对象时，请用 `is`。
+
+<div align=center>
+![](/images/wechatPublicAccount.png)
+</div>
