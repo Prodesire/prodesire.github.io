@@ -2,6 +2,15 @@
 title: Python 命令行之旅：argparse、docopt、click 和 fire 总结篇
 date: 2020-02-09 13:40:21
 tags:
+  - Python
+  - 命令行
+  - argparse
+  - docopt
+  - click
+  - fire
+categories:
+  - Python
+  - 命令行
 ---
 
 ## 一、前言
