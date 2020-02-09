@@ -372,6 +372,7 @@ Other: --bad  # 坏, 没有以 "-" 开头
 - {% post_link Python-命令行之旅：深入-fire（一） %}
 - {% post_link Python-命令行之旅：深入-fire（二） %}
 - {% post_link Python-命令行之旅：使用-fire-实现-git-命令 %}
+- {% post_link Python-命令行之旅：argparse、docopt、click-和-fire-总结篇 %}
 
 <div align=center>
 ![](/images/wechatPublicAccount.png)
