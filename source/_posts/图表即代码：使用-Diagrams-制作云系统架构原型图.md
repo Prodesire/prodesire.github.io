@@ -35,6 +35,8 @@ $ pipenv install diagrams
 $ poetry add diagrams
 ```
 
+<!--more-->
+
 ## 三、快速开始
 
 ```python
