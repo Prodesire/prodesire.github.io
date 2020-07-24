@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"prodesire.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言2017 年大概 11 月份时在 PyCon China 2017 杭州站分享了  Python 跨平台兼容性实践，讲述了如何让 Python 程序兼容更多的平台。 遗憾的是，当时没有影像资料，又缺少文字记录。现在应朋友的要求，将当时的内容整理成文字。 本文将首先介绍背景，然后介绍如何做到解释器的兼容性，再介绍库的兼容性，最后介绍如何进行多个平台的持续集成，从而达到跨平台兼容性的目的。 背景为">
+<meta name="keywords" content="Python,跨平台,兼容性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 跨平台兼容性实践——记 PyCon China 2017 的一次分享">
+<meta property="og:url" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/index.html">
+<meta property="og:site_name" content="Prodesire">
+<meta property="og:description" content="前言2017 年大概 11 月份时在 PyCon China 2017 杭州站分享了  Python 跨平台兼容性实践，讲述了如何让 Python 程序兼容更多的平台。 遗憾的是，当时没有影像资料，又缺少文字记录。现在应朋友的要求，将当时的内容整理成文字。 本文将首先介绍背景，然后介绍如何做到解释器的兼容性，再介绍库的兼容性，最后介绍如何进行多个平台的持续集成，从而达到跨平台兼容性的目的。 背景为">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/deployment-architecture.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/agent-systems.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/python-system-compare.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/python-lib-compare.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/python-product-compare.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/ubuntu-python-platform-code.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/ubuntu-lsb-release.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/psutil-structure.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/types-patch.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/psutil-patch.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/sysutil-implement.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/process-daemon-compare.png">
+<meta property="og:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/ci.png">
+<meta property="og:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+<meta property="og:updated_time" content="2020-07-24T15:00:04.360Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python 跨平台兼容性实践——记 PyCon China 2017 的一次分享">
+<meta name="twitter:description" content="前言2017 年大概 11 月份时在 PyCon China 2017 杭州站分享了  Python 跨平台兼容性实践，讲述了如何让 Python 程序兼容更多的平台。 遗憾的是，当时没有影像资料，又缺少文字记录。现在应朋友的要求，将当时的内容整理成文字。 本文将首先介绍背景，然后介绍如何做到解释器的兼容性，再介绍库的兼容性，最后介绍如何进行多个平台的持续集成，从而达到跨平台兼容性的目的。 背景为">
+<meta name="twitter:image" content="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/deployment-architecture.png">
+
+<link rel="canonical" href="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Python 跨平台兼容性实践——记 PyCon China 2017 的一次分享 | Prodesire</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?65299c312c93ea8fc5dd3786947453bf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Prodesire" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Prodesire</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-top">
+
+    <a href="/top" rel="section"><i class="fa fa-signal fa-fw"></i>top</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/prodesire" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://prodesire.cn/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Prodesire">
+      <meta itemprop="description" content="Prodesire 的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Prodesire">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python 跨平台兼容性实践——记 PyCon China 2017 的一次分享
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-04-14 20:02:45" itemprop="dateCreated datePublished" datetime="2019-04-14T20:02:45+08:00">2019-04-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-24 23:00:04" itemprop="dateModified" datetime="2020-07-24T23:00:04+08:00">2020-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/跨平台/" itemprop="url" rel="index"><span itemprop="name">跨平台</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/" class="post-meta-item leancloud_visitors" data-flag-title="Python 跨平台兼容性实践——记 PyCon China 2017 的一次分享" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>15k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>13 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>2017 年大概 11 月份时在 PyCon China 2017 杭州站分享了  Python 跨平台兼容性实践，讲述了如何让 Python 程序兼容更多的平台。</p>
+<p>遗憾的是，当时没有影像资料，又缺少文字记录。现在应朋友的要求，将当时的内容整理成文字。</p>
+<p>本文将首先介绍背景，然后介绍如何做到解释器的兼容性，再介绍库的兼容性，最后介绍如何进行多个平台的持续集成，从而达到跨平台兼容性的目的。</p>
+<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>为什么要做跨平台兼容性？</p>
+<a id="more"></a>
+<p>我们的产品部署架构如下：<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/deployment-architecture.png"></p>
+<p>每一台目标机上需要安装一台 Agent，Agent Server 对这些 Agent 进行管理。而由于目标机众多（成千上万台），其操作系统也可能千差万别。我们需要支持不同的操作系统大类（如 Windows、Linux、AIX 等）、不同的发行版（如 CentOS、Debian 等）、不同的版本（如 CentOS 5、6、7）。而 Agent 是由 Python 编写的，这就对 Python 程序的兼容性提出了很高的要求。<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/agent-systems.png"></p>
+<p>若要做好兼容性，我们需要考虑如下内容：</p>
+<ul>
+<li>解释器兼容性。由于 Agent 自带 Python 解释器，首先需要让 Python 解释器支持目标平台。</li>
+<li>库兼容性。每个库都有其特定的平台要求，需要改造所依赖的库以支持目标平台。</li>
+<li>多平台持续集成。不同平台构建出的 Agent 程序包是不同的，如何进行有效的构建管理是需要思考的问题。</li>
+</ul>
+<h1 id="解释器兼容性"><a href="#解释器兼容性" class="headerlink" title="解释器兼容性"></a>解释器兼容性</h1><h2 id="Python-2-还是-3？"><a href="#Python-2-还是-3？" class="headerlink" title="Python 2 还是 3？"></a>Python 2 还是 3？</h2><p>摆在我们眼前的第一个问题就是到底是用 Python 2 还是 3？究竟哪个解释器对跨平台的支持力度更好呢？</p>
+<p>我们对它们所支持的操作系统做了一个简单的对比，发现 Python 3 相对于 Python 2 来说少了对 Windows 2003 的支持。<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/python-system-compare.png"></p>
+<p>对我们所依赖的 Python 库做了对比，发现当时的两个核心依赖库对 Python 3 支持的都不好。<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/python-lib-compare.png"></p>
+<p>所以，在这个问题上，我们投 Python 2 一票。</p>
+<h2 id="现成的解释器兼容方案"><a href="#现成的解释器兼容方案" class="headerlink" title="现成的解释器兼容方案"></a>现成的解释器兼容方案</h2><p>如果市面上有现成的解释器兼容方案，那么我们就拿来主义即可，不用自己再去折腾。市面上主流的有两个 Python 集成环境：Anaconda 和 ActivePython，我们做了一个对比：<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/python-product-compare.png"></p>
+<p>Anaconda 的优势在于支持运行于 Power 8 处理器的常见操作系统，迭代速度快、开源；而 ActivePython 的优势在于支持 AIX 和 HP-UX 系统。考虑到没钱，我们选择 Anaconda 作为 Windows 和 Linux 平台的基础解释器环境。</p>
+<p>当然了，Anaconda 在少数几个平台上会遇到各种无法运行的问题。</p>
+<p><strong>在 SUSE 10.0 上</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">linux:~/python-linux-64 # ./bin/python</span><br><span class="line">Floating point exception</span><br></pre></td></tr></table></figure>
+<p><strong>在 AIX 6.1 上</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">IBM-P520: ~/python-linux-64# ./bin/python</span><br><span class="line">-bash: ./bin/python: cannot execute binary file: Exec format error</span><br></pre></td></tr></table></figure>
+<p>针对于上述情况，我们在特定平台上需要定制的解释器。</p>
+<h2 id="特定平台兼容性方案"><a href="#特定平台兼容性方案" class="headerlink" title="特定平台兼容性方案"></a>特定平台兼容性方案</h2><p>所谓的特定平台兼容性方案，其实就是编译，分为两个步骤：</p>
+<ol>
+<li>编译必要的 Python 依赖库，如：<ul>
+<li>sqlite 轻量级数据库</li>
+<li>zlib 数据压缩库</li>
+<li>readline 交互式文本编辑库</li>
+<li>openssl TSL 和 SSL 密码库</li>
+</ul>
+</li>
+<li>编译 Python 2</li>
+</ol>
+<p>不同平台上的编译方法略有差异。</p>
+<h3 id="在-Linux-上编译"><a href="#在-Linux-上编译" class="headerlink" title="在 Linux 上编译"></a>在 Linux 上编译</h3><p><strong>sqlite/zlib/readline</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">linux:~ # CFLAGS=-fPIC ./configure --prefix=/opt/python-suse64/</span><br><span class="line">linux:~ # make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p><strong>openssl</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">linux:~ # CFLAGS=-fPIC ./config shared --prefix=/opt/python-suse64/</span><br><span class="line">linux:~ # make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p><strong>Python 2</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">linux:~ # LDFLAGS="-Wl,-rpath=\$\$ORIGIN/../lib" ./configure --prefix=/opt/python-suse64</span><br><span class="line">linux:~ # make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p><strong>简单验证</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">linux:~/python-suse10<span class="number">-64</span> <span class="comment"># ./bin/python</span></span><br><span class="line">Python <span class="number">2.7</span><span class="number">.13</span> (default, Jul  <span class="number">7</span> <span class="number">2017</span>, <span class="number">04</span>:<span class="number">15</span>:<span class="number">22</span>)</span><br><span class="line">[GCC <span class="number">4.0</span><span class="number">.2</span> <span class="number">20050901</span> (prerelease) (SUSE Linux)] on linux2</span><br><span class="line">Type <span class="string">"help"</span>, <span class="string">"copyright"</span>, <span class="string">"credits"</span> <span class="keyword">or</span> <span class="string">"license"</span> <span class="keyword">for</span> more information.</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> platform, hashlib, zlib, sqlite3</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.architecture()</span><br><span class="line">(<span class="string">'64bit'</span>, <span class="string">'ELF'</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>hashlib.sha1().hexdigest()</span><br><span class="line"><span class="string">'da39a3ee5e6b4b0d3255bfef95601890afd80709'</span></span><br></pre></td></tr></table></figure>
+<h3 id="在-AIX-上编译"><a href="#在-AIX-上编译" class="headerlink" title="在 AIX 上编译"></a>在 AIX 上编译</h3><p>确保安装了 bash、gcc 等必要工具。AIX 是 Unix 平台的一个发行版，我们是要使用和 Linux 上一样的编译方法吗？不如照着上面的方法执行一遍。</p>
+<p><strong>简单验证</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">IBM-P520:/opt/python-aix<span class="number">-64</span><span class="comment"># ./bin/python</span></span><br><span class="line">Python <span class="number">2.7</span><span class="number">.13</span> (default, Apr <span class="number">20</span> <span class="number">2017</span>, <span class="number">22</span>:<span class="number">45</span>:<span class="number">10</span>)</span><br><span class="line">[GCC <span class="number">4.8</span><span class="number">.4</span>] on aix6</span><br><span class="line">Type <span class="string">"help"</span>, <span class="string">"copyright"</span>, <span class="string">"credits"</span> <span class="keyword">or</span> <span class="string">"license"</span> <span class="keyword">for</span> more information.</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> platform</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.architecture()</span><br><span class="line">(<span class="string">'32bit'</span>, <span class="string">''</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>quit()</span><br><span class="line">IBM-P520:/opt/python-aix<span class="number">-64</span></span><br><span class="line"><span class="comment"># bootinfo -K</span></span><br><span class="line"><span class="number">64</span></span><br></pre></td></tr></table></figure>
+<p>查看上述结果我们发现，AIX 明明是 64 位的，结果却显示 32 位。这是因为 Python 解释器本身是 32 位。那就是说直接套用上一节中的方法还不能编译出系统自身位数的 Python 解释器，还需加以改造。</p>
+<p>通过以下方法，我们显式地编译 64 位版本的 Python 解释器。</p>
+<p><strong>sqlite</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">IBM-P520:/opt# CC="gcc -maix64" ARFLAGS="-X64 cr" ./configure --prefix=/opt/python-aix64/</span><br><span class="line"><span class="meta">#</span><span class="bash"> 修改 libtool 中 AR_FLAGS=<span class="string">"cru"</span> 为 AR_FLAGS=<span class="string">"-X64 cru"</span></span></span><br><span class="line">IBM-P520:/opt# OBJECT_MODE=64 make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p><strong>zlib/readline</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">IBM-P520:/opt# CFLAGS="-maix64" ARFLAGS="-X64 cr" ./configure --prefix=/opt/python-aix64/</span><br><span class="line">IBM-P520:/opt# OBJECT_MODE=64 make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p><strong>openssl</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">IBM-P520:/opt# ./Configure threads --prefix=/opt/python-aix64 aix64-gcc</span><br><span class="line">IBM-P520:/opt# make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p><strong>Python 2</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">IBM-P520:/opt# ./configure --prefix=/opt/python-aix64 --with-gcc="gcc -maix64" CXX="g++ -maix64" AR="ar -X64" CFLAGS=-fPIC</span><br><span class="line">IBM-P520:/opt# make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p>编译好后，在验证时可能遇到这样的问题：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> zlib</span><br><span class="line">Traceback (most recent call last):</span><br><span class="line">  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;</span><br><span class="line">ImportError: Could <span class="keyword">not</span> load module /opt/python-aix<span class="number">-64</span>/lib/python2<span class="number">.7</span>/lib-dynload/zlib.so.</span><br><span class="line">        Dependent module /opt/freeware/lib/gcc/powerpc-ibm-aix6<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">6.3</span><span class="number">.0</span>/../../../libz.so could <span class="keyword">not</span> be loaded.</span><br><span class="line">Could <span class="keyword">not</span> load module /opt/freeware/lib/gcc/powerpc-ibm-aix6<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">6.3</span><span class="number">.0</span>/../../../libz.so.</span><br><span class="line">System error: Exec format error</span><br><span class="line">Could <span class="keyword">not</span> load module /opt/python-aix<span class="number">-64</span>/lib/python2<span class="number">.7</span>/lib-dynload/zlib.so.</span><br><span class="line">        Dependent module /opt/python-aix<span class="number">-64</span>/lib/python2<span class="number">.7</span>/lib-dynload/zlib.so could <span class="keyword">not</span> be loaded.</span><br></pre></td></tr></table></figure>
+<p>这是因为当你把编译好的文件夹移动到其他目录后，解释器无法找到动态链接库（编译的时候写死了路径），所以在运行时需要指定 lib 路径：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LD_LIBRARY_PATH=/opt/python-aix-64/lib ./bin/python</span><br></pre></td></tr></table></figure>
+<h3 id="pip"><a href="#pip" class="headerlink" title="pip"></a>pip</h3><p>编译完 Python 后，我们还需要安装 pip，用来后续安装各种 Python 库。不过在 AIX 上安装 pip 库时，你可能会遇到这样的问题：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Modules/ld_so_aix gcc -maix64 -pthread -bI:Modules/python.exp build/temp.aix-6.1-2.7/psutil/_psutil_aix.o build/temp.aix-6.1-2.7/psutil/arch/aix/net_connections.o -lperfstat -o build/lib.aix-6.1-2.7/psutil/_psutil_aix.so</span><br><span class="line">unable to execute 'Modules/ld_so_aix': No such file or directory</span><br><span class="line">error: command 'Modules/ld_so_aix' failed with exit status 1</span><br></pre></td></tr></table></figure>
+<p>从报错可以看出，是找不到 <code>Modules/ld_so_aix</code>，那么我们就对症下药，显式地指明这个路径。修改 <code>./lib/python2.7/_sysconfigdata.py</code> 的构建相关参数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># system configuration generated and used by the sysconfig module</span></span><br><span class="line">build_time_vars = &#123;</span><br><span class="line">        ...</span><br><span class="line">    <span class="string">'BLDSHARED'</span>: <span class="string">'Modules/ld_so_aix gcc -maix64 -pthread -bI:Modules/python.exp'</span>,</span><br><span class="line">    ...</span><br><span class="line">    <span class="string">'LDSHARED'</span>: <span class="string">'Modules/ld_so_aix gcc -maix64 -pthread -bI:Modules/python.exp'</span>,</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将 <code>Modules</code> 修改为 <code>./lib/python2.7/config</code> 的绝对路径。</p>
+<p>在完成的 Python 的编译和 pip 的安装后，我们就要考虑库的兼容性了。</p>
+<h1 id="库兼容性"><a href="#库兼容性" class="headerlink" title="库兼容性"></a>库兼容性</h1><p>考虑到 Agent 主要的作用是采集和控制，那么主要就需要考虑如下几个方面的兼容性：</p>
+<ul>
+<li>平台参数，如操作系统、发行版、版本号等</li>
+<li>进程、系统管理功能，如查看进程、网络等</li>
+<li>文件管理功能，如高级拷贝、重命名、删除</li>
+<li>进程守护功能，如以服务形式来守护进程</li>
+</ul>
+<p>以上类别我们都依赖了特定的库，包括标准库和第三方库。我们需要考察所依赖库的兼容性，并对其不兼容的地方加以改造。</p>
+<h2 id="平台库-platform"><a href="#平台库-platform" class="headerlink" title="平台库 platform"></a>平台库 platform</h2><p>我们使用 Python 标准库 platform 来检测 Agent 所运行的平台。platform 库在 Ubuntu 发行版上的存在识别出错的问题。</p>
+<p><strong>编译的 Python</strong><br>我们所编译的 Python 使用 platform 误将 Ubuntu 识别为了 Debian。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> platform</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.platform()</span><br><span class="line"><span class="string">'Linux-4.4.0-62-generic-x86_64-with-debian-stretch-sid'</span></span><br></pre></td></tr></table></figure>
+<p><strong>系统自带的 Python</strong><br>而 Ubuntu 系统自带的 Python 使用 platform 却能正常识别。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> platform</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.platform()</span><br><span class="line"><span class="string">'Linux-4.4.0-62-generic-x86_64-with-Ubuntu-16.04-xenial'</span></span><br></pre></td></tr></table></figure>
+<p>这背后是因为 Ubuntu 系统自带的 Python 对 platform 标准库进行了改造。查看其源码，我们可以发现多了如下内容的改造：<br><code>platform.py</code><br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/ubuntu-python-platform-code.png"></p>
+<p><code>/etc/lsb-release</code><br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/ubuntu-lsb-release.png"></p>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><p>对平台库来说，我们关注如下几点：</p>
+<ul>
+<li>系统大类，如 Windows、Linux、UNIX 等</li>
+<li>发行版，如 CentOS</li>
+<li>发行版本号，如 2003(Win)、7.2.1511(CentOS)</li>
+<li>内核版本号，如 10.0.14393(Win)、3.10.0(Linux)</li>
+</ul>
+<p>而 platform 标准库存在一些不足：</p>
+<ul>
+<li>行为分裂</li>
+<li>结果有疏漏</li>
+<li>不够易用</li>
+</ul>
+<p>在不同平台上，完成相同的目的需要调用不同的函数，而结果往往又很难直接使用。</p>
+<p><strong>Windows</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> platform</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.win32_ver()</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>(<span class="string">'10'</span>, <span class="string">'10.0.14393'</span>, <span class="string">''</span>, <span class="string">u'Multiprocessor Free'</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.dist()</span><br><span class="line">(<span class="string">''</span>, <span class="string">''</span>, <span class="string">''</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.uname()</span><br><span class="line">(<span class="string">'Windows'</span>, <span class="string">'Prodesire'</span>, <span class="string">'10'</span>, <span class="string">'10.0.14393'</span>, <span class="string">'AMD64'</span>, <span class="string">'Intel64 Family 6 Model 94 Stepping 3, GenuineIntel'</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.platform()</span><br><span class="line"><span class="string">'Windows-10-10.0.14393'</span></span><br></pre></td></tr></table></figure>
+<p><strong>Linux(SUSE)</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> platform</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.linux_distribution()</span><br><span class="line">(<span class="string">'SUSE LINUX '</span>, <span class="string">'10.0'</span>, <span class="string">'X86-64'</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.dist()</span><br><span class="line">(<span class="string">'SuSE'</span>, <span class="string">'10.0'</span>, <span class="string">'X86-64'</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.uname()</span><br><span class="line">(<span class="string">'Linux'</span>, <span class="string">'linux'</span>, <span class="string">'2.6.13-15-default'</span>, <span class="string">'#1 Tue Sep 13 14:56:15 UTC 2005'</span>, <span class="string">'x86_64'</span>, <span class="string">'x86_64'</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.platform()</span><br><span class="line"><span class="string">'Linux-2.6.13-15-default-x86_64-with-SuSE-10.0-X86-64'</span></span><br></pre></td></tr></table></figure>
+<p><strong>AIX</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> platform</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.linux_distribution()</span><br><span class="line">(<span class="string">''</span>, <span class="string">''</span>, <span class="string">''</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.dist()</span><br><span class="line">(<span class="string">''</span>, <span class="string">''</span>, <span class="string">''</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.uname()</span><br><span class="line">(<span class="string">'AIX'</span>, <span class="string">'IBM-P520'</span>, <span class="string">'1'</span>, <span class="string">'6'</span>, <span class="string">'00C59DEF4C00'</span>, <span class="string">'powerpc'</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>platform.platform()</span><br><span class="line"><span class="string">'AIX-1-00C59DEF4C00-powerpc-64bit'</span></span><br></pre></td></tr></table></figure>
+<h2 id="平台扩展库-pf"><a href="#平台扩展库-pf" class="headerlink" title="平台扩展库 pf"></a>平台扩展库 pf</h2><p>针对 platform 的不足，以及我们的需求，可以设计一个基于 platform 的扩展库 pf。其提供 <code>get_platform</code> 函数用来获取平台，并返回 <code>Platform</code> 命名元组，包含系统大类、发行版<br>、版本、CPU 位数和内核版本等信息。以下是部分代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">Platform = namedtuple(<span class="string">'Platform'</span>,</span><br><span class="line">                      [<span class="string">'system'</span>, <span class="string">'dist'</span>, <span class="string">'version'</span>, <span class="string">'cpu'</span>, <span class="string">'kernel'</span>])</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_platform</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">global</span> _platform</span><br><span class="line">    <span class="keyword">if</span> _platform <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">        <span class="keyword">return</span> _platform</span><br><span class="line"></span><br><span class="line">    version = kernel = <span class="string">''</span></span><br><span class="line">    uname = platform.uname()</span><br><span class="line">    system = uname[<span class="number">0</span>]</span><br><span class="line">    arch = rstrip(platform.architecture()[<span class="number">0</span>], <span class="string">'bit'</span>)</span><br><span class="line">    cpu = <span class="number">32</span> <span class="keyword">if</span> arch == <span class="string">'32'</span> <span class="keyword">else</span> <span class="number">64</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> system == <span class="string">'Windows'</span>:</span><br><span class="line">        dist = <span class="string">'Windows'</span></span><br><span class="line">        kernel = uname[<span class="number">3</span>]</span><br><span class="line">        result = re.findall(<span class="string">'(\d+)'</span>, uname[<span class="number">2</span>])</span><br><span class="line">        <span class="keyword">if</span> result:</span><br><span class="line">            version = result[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">elif</span> system == <span class="string">'Linux'</span>:</span><br><span class="line">        platform_str = platform.platform().strip().lower()</span><br><span class="line">        result = re.findall(</span><br><span class="line">                <span class="string">'with-(centos|ubuntu|debian|fedora|redhat|oracle)-'</span>, platform_str)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> result:</span><br><span class="line">            dist = LINUX_DIST_MAP[result[<span class="number">0</span>]]</span><br><span class="line">            <span class="comment"># 针对 RedHat 和 CentOS 发行版</span></span><br><span class="line">                        …</span><br><span class="line">                    <span class="keyword">else</span>:</span><br><span class="line">                        <span class="comment"># 针对 openSUSE 和 SUSE 发行版</span></span><br><span class="line">                         …</span><br><span class="line">                    version = platform.linux_distribution()[<span class="number">1</span>]</span><br><span class="line">                    kernel = platform_str.split(<span class="string">'-'</span>)[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">                    <span class="comment"># 针对 Amazon 发行版</span></span><br><span class="line">                    <span class="keyword">if</span> <span class="keyword">not</span> dist <span class="keyword">and</span> <span class="string">'amzn'</span> <span class="keyword">in</span> platform_str:</span><br><span class="line">                        …</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Platform(system, dist, version, cpu, kernel)</span><br></pre></td></tr></table></figure>
+<h2 id="进程、系统管理库-psutil"><a href="#进程、系统管理库-psutil" class="headerlink" title="进程、系统管理库 psutil"></a>进程、系统管理库 psutil</h2><h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p><a href="https://github.com/giampaolo/psutil" target="_blank" rel="noopener">psutil(process and system utilities)</a> 是一个跨平台的库，用于检索 Python 中运行的进程和系统利用率（CPU，内存，磁盘，网络，传感器）的信息。</p>
+<h3 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h3><ul>
+<li>不对老版 Windows(如 2003)进行维护。(3.4.2 及更早版本支持)</li>
+<li>不支持 AIX (最新版 5.4.0 支持，但在低版本的 AIX6 上报错)</li>
+<li>在 CentOS/RedHat 5.0 上安装报错</li>
+<li>获取常用指标(如 IP、硬盘大小、是否为虚拟机等)不够便捷</li>
+</ul>
+<h3 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h3><p>由于 psutil 是我们所依赖的核心库之一，改善其不足点非常必要，这甚至需要从源码层面来解决。</p>
+<p>这就要了解其项目结构：<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/psutil-structure.png"></p>
+<p>让我们以 psutil 在 CentOS 5.0 上安装报错为例来讲解如何进行优化。</p>
+<p><strong>报错</strong><br>pip install psutil==5.3.0 报错：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gcc -pthread -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DPSUTIL_POSIX=1 -DPSUTIL_VERSION=530 -DPSUTIL_LINUX=1 -DPSUTIL_ETHTOOL_MISSING_TYPES=1 -I/home/project/python-linux64/include/python2.7 -c psutil/_psutil_posix.c -o build/temp.linux-x86_64-2.7/psutil/_psutil_posix.o</span><br><span class="line">   In file included from psutil/_psutil_posix.c:27:</span><br><span class="line">   /usr/include/linux/if_packet.h:52: error: expected specifier-qualifier-list before '__u32'</span><br><span class="line">   error: command 'gcc' failed with exit status 1</span><br></pre></td></tr></table></figure>
+<p><strong>错误原因</strong><br>报错大概是说 if_packet.h 中 __u32 有问题，但这个文件其实是系统库的头文件，很有可能是系统问题。经过搜索发现，这确实是个系统 Bug，详见 <a href="https://bugzilla.redhat.com/show_bug.cgi?id=233934" target="_blank" rel="noopener">Red Hat Bugzilla – Bug 233934 The patch “xen: Add PACKET_AUXDATA cmsg” cause /usr/include/linux/if_packet.h broken</a>。</p>
+<p><strong>系统 Patch</strong><br>有人提交了一个系统 Patch 来修复这个错误，详见 <a href="https://bugzilla.redhat.com/attachment.cgi?id=150888&amp;action=diff" target="_blank" rel="noopener">Red Hat Bugzilla – Attachment #150888: Include linux/types.h for __u32. for bug #233934</a>：<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/types-patch.png"></p>
+<p><strong>为 psutil 打 Patch</strong><br>由于 Agent 是装在客户环境，我们能不修改客户环境就不修改，那么能否改 psutil 的源码吗？还真可以，为此我提交了一份 patch：<a href="https://github.com/giampaolo/psutil/pull/1139/files" target="_blank" rel="noopener">Fix #1138: error on CentOS 5.0: expected specifier-qualifier-list before ‘__u32’</a>。<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/psutil-patch.png"></p>
+<h2 id="进程、系统管理扩展库-sysutil"><a href="#进程、系统管理扩展库-sysutil" class="headerlink" title="进程、系统管理扩展库 sysutil"></a>进程、系统管理扩展库 sysutil</h2><p>前文我们提到 psutil 在获取常用指标上还不够便捷，为此我们需要开发扩展库 sysutil。</p>
+<h3 id="介绍-1"><a href="#介绍-1" class="headerlink" title="介绍"></a>介绍</h3><p>sysutil 是一个跨平台的库，基于 psutil，用于获取 IP、磁盘、是否为虚拟机等信息。</p>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> sysutil</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">from</span> pprint <span class="keyword">import</span> pprint</span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>pprint(sysutil.network_info())</span><br><span class="line">[snetworkinfo(name=<span class="string">'docker0'</span>, mac=<span class="string">'02:42:c5:0f:df:9c'</span>, ipv4=<span class="string">'172.17.0.1'</span>, ipv6=<span class="string">'fe80::42:c5ff:fe0f:df9c'</span>, netmask=<span class="string">'255.255.0.0'</span>),</span><br><span class="line"> snetworkinfo(name=<span class="string">'eno16777984'</span>, mac=<span class="string">'00:50:56:ab:e9:f6'</span>, ipv4=<span class="string">'10.1.100.100'</span>, ipv6=<span class="string">'fe80::250:56ff:feab:e9f6'</span>, netmask=<span class="string">'255.255.255.0'</span>)]</span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>pprint(sysutil.disk_info())</span><br><span class="line">[sdiskpart(device=<span class="string">'/dev/mapper/centos-root'</span>, mountpoint=<span class="string">'/'</span>, total=<span class="number">53660876800</span>),</span><br><span class="line"> sdiskpart(device=<span class="string">'/dev/mapper/centos-home'</span>, mountpoint=<span class="string">'/home'</span>, total=<span class="number">424532996096</span>),</span><br><span class="line"> sdiskpart(device=<span class="string">'/dev/sda1'</span>, mountpoint=<span class="string">'/boot'</span>, total=<span class="number">520794112</span>)]</span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>sysutil.cpu_info()</span><br><span class="line">scpuinfo(brand=<span class="string">'Intel(R) Core(TM) i5-6500 CPU @ 3.20GHz'</span>, frequency=<span class="string">'3.2000 GHz'</span>, family=<span class="number">6</span>, vendor_id=<span class="string">'GenuineIntel'</span>, stepping=<span class="number">3</span>, cache_size=<span class="string">'6144 KB'</span>, model=<span class="number">94</span>)</span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>sysutil.is_virtual_machine()</span><br><span class="line"><span class="keyword">True</span></span><br></pre></td></tr></table></figure>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p>以 sysutil 中 is_virtual_machine 函数为例，我们讲解下 sysutil 是如何实现判断当前平台是否是虚拟机。</p>
+<p>一个功能函数在多个平台上可能有相同的实现，也可能有不同的实现。我们把入口函数放在 <code>__init__.py</code> 中，相同的实现放在 <code>_common.py</code> 中，不同的实现放在 <code>_sys</code> 开头的系统特定实现文件中。</p>
+<p>Windows 和 Linux/Unix 截然不同的判断方式，因此在入口函数处判断是否是 Windows 平台，然后调用特定方法。而 Linux/Unix 平台上不同的发型版所执行的判断命令可能不同，因此其系统特定实现文件中仅仅写上不同的命令即可。</p>
+<img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/sysutil-implement.png">
+<h2 id="文件管理库-nfs"><a href="#文件管理库-nfs" class="headerlink" title="文件管理库 nfs"></a>文件管理库 nfs</h2><h3 id="介绍-2"><a href="#介绍-2" class="headerlink" title="介绍"></a>介绍</h3><p>nfs 是一个跨平台的自研库，基于 shutil、tarfile、zipfile 等系统库，用于提供更高层次的文件管理功能。</p>
+<h3 id="功能函数"><a href="#功能函数" class="headerlink" title="功能函数"></a>功能函数</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">remove(src, filter_files=<span class="keyword">None</span>, filter_dirs=<span class="keyword">None</span>, exclude_files=<span class="keyword">None</span>, exclude_dirs=<span class="keyword">None</span>)</span><br><span class="line">copy(src, dst, filter_files=<span class="keyword">None</span>, filter_dirs=<span class="keyword">None</span>, exclude_files=<span class="keyword">None</span>, exclude_dirs=<span class="keyword">None</span>, symlinks=<span class="keyword">False</span>, mode=<span class="number">0750</span>)</span><br><span class="line">touch(path)</span><br><span class="line">rename()</span><br><span class="line">compress(src, dst=<span class="string">'.'</span>, name=<span class="keyword">None</span>, root=<span class="keyword">None</span>, postfix=<span class="string">'.tar.gz'</span>)</span><br><span class="line">uncompress(src, dst=<span class="string">'.'</span>, temp_dir=<span class="keyword">None</span>, overwrite=<span class="keyword">True</span>, extract_all=<span class="keyword">False</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h3><p>以 <code>remove</code> 为例，在删除文件时我们可能并不在意要删除的是文件还是文件夹，以及我们想要忽略一些特定的文件（夹），标准库 shutil 并不能直接满足我们的需求。此外，在 Windows 平台上删除文件时可能会报无法删除的错误，也需要在发生错误时做一定处理。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">remove</span><span class="params">(src,</span></span></span><br><span class="line"><span class="function"><span class="params">           filter_files=None,</span></span></span><br><span class="line"><span class="function"><span class="params">           filter_dirs=None,</span></span></span><br><span class="line"><span class="function"><span class="params">           exclude_files=None,</span></span></span><br><span class="line"><span class="function"><span class="params">           exclude_dirs=None)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> glob.has_magic(src):</span><br><span class="line">        <span class="keyword">for</span> new_src <span class="keyword">in</span> glob.glob(src):</span><br><span class="line">            remove(new_src, filter_files, filter_dirs, exclude_files,</span><br><span class="line">                   exclude_dirs)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isdir(src):</span><br><span class="line">        filepaths = _get_filenames([src], filter_files, exclude_files)</span><br><span class="line">        <span class="keyword">if</span> filepaths:</span><br><span class="line">            _remove_file(filepaths[<span class="number">0</span>])</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> root, dirnames, filenames <span class="keyword">in</span> walk(src, filter_files, filter_dirs,</span><br><span class="line">                                          exclude_files, exclude_dirs):</span><br><span class="line">        <span class="keyword">for</span> filename <span class="keyword">in</span> filenames:</span><br><span class="line">            _remove_file(join(root, filename))</span><br><span class="line">        <span class="keyword">for</span> dirname <span class="keyword">in</span> dirnames:</span><br><span class="line">            path = join(root, dirname)</span><br><span class="line">            shutil.rmtree(path, onerror=onerror)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.listdir(src):</span><br><span class="line">        shutil.rmtree(src, onerror=onerror)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">onerror</span><span class="params">(func, path, exc_info)</span>:</span></span><br><span class="line">    <span class="keyword">import</span> stat</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.access(path, os.W_OK):</span><br><span class="line">        os.chmod(path, stat.S_IWUSR)</span><br><span class="line">        func(path)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span></span><br></pre></td></tr></table></figure>
+<h2 id="进程守护库-circle"><a href="#进程守护库-circle" class="headerlink" title="进程守护库 circle"></a>进程守护库 circle</h2><h3 id="介绍-3"><a href="#介绍-3" class="headerlink" title="介绍"></a>介绍</h3><p>circle 是一个跨平台的自研库，基于 <a href="https://github.com/circus-tent/circus" target="_blank" rel="noopener">circus</a>，用于提供进程守护功能。</p>
+<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>我们都知道著名的进程守护库 supervisor，很遗憾的是它不支持 Windows。circus 虽然支持 Windows，但是少了支持配置文件夹、Windows 后台启动的功能。于是，我们就需要基于 circus 做一定的改造。<br><img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/process-daemon-compare.png"></p>
+<h3 id="使用-1"><a href="#使用-1" class="headerlink" title="使用"></a>使用</h3><p><strong>配置</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[watcher:framework]</span><br><span class="line">cmd=$(CIRCLE.ENV.ANT_PYTHON) -m framework</span><br><span class="line">numprocess=1</span><br><span class="line">stop_children=True</span><br><span class="line"></span><br><span class="line">[env:framework]</span><br><span class="line">ANT_MODULE_ROOT=$ANT_ROOT_DIR</span><br></pre></td></tr></table></figure>
+<p><strong>运行</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Linux/Unix:</span><br><span class="line">./bin/circled -c circled.ini --daemon</span><br><span class="line">Windows:</span><br><span class="line">.\python .\bin\circled -c circled.ini --daemon</span><br></pre></td></tr></table></figure>
+<h3 id="实现-2"><a href="#实现-2" class="headerlink" title="实现"></a>实现</h3><p>以后台服务为例<br><code>bin/circled</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding: utf-8</span></span><br><span class="line"><span class="string">"exec"</span> <span class="string">"./embedded/bin/python"</span> <span class="string">"./bin/circled"</span> <span class="string">"$@"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="keyword">import</span> sys</span><br><span class="line">    <span class="keyword">from</span> os.path <span class="keyword">import</span> dirname, abspath</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Set module path</span></span><br><span class="line">    root_dir = dirname(dirname(abspath(__file__)))</span><br><span class="line">    sys.path.insert(<span class="number">0</span>, root_dir)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Handle CLI</span></span><br><span class="line">    <span class="keyword">from</span> circle.circled <span class="keyword">import</span> handle_cli</span><br><span class="line">    handle_cli()</span><br></pre></td></tr></table></figure>
+<p><code>circle/circled.py</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">handle_cli</span><span class="params">()</span>:</span></span><br><span class="line">    cli_args = parse_args()</span><br><span class="line">    main(cli_args)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">(args)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> args[<span class="string">'--daemon'</span>]:</span><br><span class="line">        <span class="keyword">if</span> IS_WINDOWS:</span><br><span class="line">            win_daemonize()</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            unix_daemonize()</span><br><span class="line">                ...</span><br></pre></td></tr></table></figure>
+<p><code>circle/circled.py</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">win_daemonize</span><span class="params">()</span>:</span></span><br><span class="line">    logger.info(<span class="string">'Starting deamon mode. The AntCircled service will be started.'</span>)</span><br><span class="line">    args = sys.argv[<span class="number">1</span>:]</span><br><span class="line">    <span class="keyword">if</span> <span class="string">'--daemon'</span> <span class="keyword">in</span> args:</span><br><span class="line">        args.remove(<span class="string">'--daemon'</span>)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> CircleWinService.exists():</span><br><span class="line">            CircleWinService.install(*args)</span><br><span class="line">            CircleWinService.start(*args)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            CircleWinService.start(*args)</span><br><span class="line">        sys.exit(<span class="number">0</span>)</span><br><span class="line">    <span class="keyword">except</span> (AlreadyExist, NotExistError, CallError) <span class="keyword">as</span> e:</span><br><span class="line">        logger.error(e)</span><br><span class="line">        sys.exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CircleWinService</span><span class="params">(object)</span>:</span></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line"><span class="meta">    @classmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">install</span><span class="params">(cls, *args)</span>:</span></span><br><span class="line">        logger.info(<span class="string">'Installing ant-agent service'</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(CIRCLED_PATH):</span><br><span class="line">            <span class="keyword">raise</span> CallError(<span class="string">'&#123;&#125; not exists.'</span>.format(CIRCLED_PATH))</span><br><span class="line"></span><br><span class="line">        returncode, output = _nssm_run(<span class="string">'install'</span>, cls.name, BIN_START)</span><br><span class="line">        <span class="keyword">if</span> returncode == <span class="number">0</span> <span class="keyword">and</span> <span class="string">'Administrator access'</span> <span class="keyword">in</span> output:</span><br><span class="line">            <span class="keyword">raise</span> CallError(output)</span><br><span class="line">        <span class="keyword">elif</span> returncode == <span class="number">5</span>:</span><br><span class="line">            <span class="keyword">raise</span> AlreadyExist(cls.exist_msg)</span><br><span class="line">        <span class="keyword">elif</span> returncode != <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">raise</span> CallError(output)</span><br><span class="line"></span><br><span class="line">        logger.info(<span class="string">'ant-agent installed'</span>)</span><br></pre></td></tr></table></figure>
+<h1 id="多平台持续集成"><a href="#多平台持续集成" class="headerlink" title="多平台持续集成"></a>多平台持续集成</h1><p>在完成了解释器和库的兼容性后，我们需要考虑如何根据不同的平台构建出来。</p>
+<h2 id="配置化构建"><a href="#配置化构建" class="headerlink" title="配置化构建"></a>配置化构建</h2><p>Python 程序的构建其实就是对文件的操作：移动、复制、git clone、压缩等等。在不同平台上这些操作所对应的命令也不尽相同，那么是否可以做到配置化部署呢？一份配置能够在多个平台上被解析运行。这样就大大减少了我们的维护成本了。</p>
+<p>配置化构建，就需要考虑配置是命令式的，还是声明式的。</p>
+<ul>
+<li>命令式——怎样做到应该做的</li>
+<li>声明式——应该做到什么</li>
+</ul>
+<p>其实并不存在一边倒的选择，我们应该考虑其：</p>
+<ul>
+<li>灵活性</li>
+<li>可读性</li>
+<li>细节程度</li>
+</ul>
+<p>我们希望具备足够的灵活性，并能了解到构建的步骤，所以采用了命令式的配置。在一个名为 <code>build.yml</code> 的文件中写成如下形式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">windows-64:</span><br><span class="line">  steps:</span><br><span class="line">    - makedirs &#123;t&#125;</span><br><span class="line">    - copy &#123;s&#125;/bin &#123;t&#125; exclude .*</span><br><span class="line">    - support_plat &#123;&#123;&apos;Windows&apos;:[64]&#125;&#125; &#123;t&#125;/manifest.yaml</span><br><span class="line">    - add_date &#123;t&#125;/manifest.yaml</span><br><span class="line">    - rename &#123;t&#125;/proc/win_openresty.ini.disable &#123;t&#125;/proc/openresty.ini.disable</span><br><span class="line">    - remove &#123;t&#125;/bin/*.sh</span><br><span class="line">    - pip_install python-windows-64 &#123;t&#125;/requirements/production.txt</span><br><span class="line">    - copy python-windows-64 &#123;t&#125;</span><br><span class="line">    - rename &#123;t&#125;/python-windows-64 &#123;t&#125;/embedded</span><br><span class="line">    - git clone git@git.gitlab.com:ant/openresty.git &#123;s&#125;/openresty</span><br><span class="line">    - copy &#123;s&#125;/openresty/openresty_win32/ &#123;t&#125;/openresty</span><br><span class="line">    - compress &#123;t&#125; &#123;project_name&#125;-windows-64-&#123;project_version&#125;.zip</span><br><span class="line">    - remove &#123;t&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>build.yml</code> 中：</p>
+<ul>
+<li>最外层的 windows-64 是一个标签，构建命令通过这个标签找到具体的构建步骤。如果整个构建是针对所有平台，这里可以命名为 all。否则，则可以命名为具体的平台。</li>
+<li>steps 则是构建步骤，每个步骤开头都是一个命令，这些命令在全平台是通用的。</li>
+<li>{}代表构建程序内置变量，比如{t}代表目标路径，{s}代表源路径</li>
+</ul>
+<h2 id="持续集成流程"><a href="#持续集成流程" class="headerlink" title="持续集成流程"></a>持续集成流程</h2><p>每个环节都搞定后，我们还要把整个流程串起来。以下是大致的流程：</p>
+<ul>
+<li>开发 push 代码到 GitLab 服务器</li>
+<li>GitLab 通过 WebHook 通知 CI 服务器</li>
+<li>CI 服务器通知各平台上的 Agent 进行单元测试、构建和部署测试</li>
+<li>Agent 在每个任务执行好后将结果通知给 CI 服务器</li>
+<li>CI 服务器将消息发送给 Dingding 服务器</li>
+<li>开发人员收到消息后进行下一步操作</li>
+</ul>
+<p>另一个环节是开发人员可能需要虚拟机用来测试，那么就会在我们的 CI 服务器上申请创建虚拟机，CI 服务器通过调用 VSphere 接口进行创建。</p>
+<img src="/2019/04/14/Python-跨平台兼容性实践——记-PyCon-China-2017-的一次分享/ci.png">
+<div align="center"><br><img src="/images/wechatPublicAccount.png" alt><br></div>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/跨平台/" rel="tag"># 跨平台</a>
+              <a href="/tags/兼容性/" rel="tag"># 兼容性</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/01/06/如何加密你的-Python-代码-——-记-PyCon-China-2018-的一次分享/" rel="prev" title="如何加密你的 Python 代码 —— 记 PyCon China 2018 的一次分享">
+      <i class="fa fa-chevron-left"></i> 如何加密你的 Python 代码 —— 记 PyCon China 2018 的一次分享
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/13/Python-命令行之旅：初探-argparse/" rel="next" title="Python 命令行之旅：初探 argparse">
+      Python 命令行之旅：初探 argparse <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解释器兼容性"><span class="nav-number">3.</span> <span class="nav-text">解释器兼容性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Python-2-还是-3？"><span class="nav-number">3.1.</span> <span class="nav-text">Python 2 还是 3？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#现成的解释器兼容方案"><span class="nav-number">3.2.</span> <span class="nav-text">现成的解释器兼容方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特定平台兼容性方案"><span class="nav-number">3.3.</span> <span class="nav-text">特定平台兼容性方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#在-Linux-上编译"><span class="nav-number">3.3.1.</span> <span class="nav-text">在 Linux 上编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在-AIX-上编译"><span class="nav-number">3.3.2.</span> <span class="nav-text">在 AIX 上编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pip"><span class="nav-number">3.3.3.</span> <span class="nav-text">pip</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#库兼容性"><span class="nav-number">4.</span> <span class="nav-text">库兼容性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#平台库-platform"><span class="nav-number">4.1.</span> <span class="nav-text">平台库 platform</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#思考"><span class="nav-number">4.1.1.</span> <span class="nav-text">思考</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#平台扩展库-pf"><span class="nav-number">4.2.</span> <span class="nav-text">平台扩展库 pf</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程、系统管理库-psutil"><span class="nav-number">4.3.</span> <span class="nav-text">进程、系统管理库 psutil</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#介绍"><span class="nav-number">4.3.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不足"><span class="nav-number">4.3.2.</span> <span class="nav-text">不足</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优化"><span class="nav-number">4.3.3.</span> <span class="nav-text">优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程、系统管理扩展库-sysutil"><span class="nav-number">4.4.</span> <span class="nav-text">进程、系统管理扩展库 sysutil</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#介绍-1"><span class="nav-number">4.4.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用"><span class="nav-number">4.4.2.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现"><span class="nav-number">4.4.3.</span> <span class="nav-text">实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件管理库-nfs"><span class="nav-number">4.5.</span> <span class="nav-text">文件管理库 nfs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#介绍-2"><span class="nav-number">4.5.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#功能函数"><span class="nav-number">4.5.2.</span> <span class="nav-text">功能函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现-1"><span class="nav-number">4.5.3.</span> <span class="nav-text">实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程守护库-circle"><span class="nav-number">4.6.</span> <span class="nav-text">进程守护库 circle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#介绍-3"><span class="nav-number">4.6.1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对比"><span class="nav-number">4.6.2.</span> <span class="nav-text">对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-1"><span class="nav-number">4.6.3.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现-2"><span class="nav-number">4.6.4.</span> <span class="nav-text">实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多平台持续集成"><span class="nav-number">5.</span> <span class="nav-text">多平台持续集成</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置化构建"><span class="nav-number">5.1.</span> <span class="nav-text">配置化构建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#持续集成流程"><span class="nav-number">5.2.</span> <span class="nav-text">持续集成流程</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Prodesire"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Prodesire</p>
+  <div class="site-description" itemprop="description">Prodesire 的博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/prodesire" title="GitHub → https://github.com/prodesire" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/prodesire" title="知乎 → https://www.zhihu.com/people/prodesire" rel="noopener" target="_blank"><i class="zhihu fa-fw"></i>知乎</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://codingcat.top/" title="https://codingcat.top/" rel="noopener" target="_blank">编程猫</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Prodesire</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">200k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:02</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz","app_key":"YcMCWnPYP6XWogWEbRBSNbfI","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz',
+      appKey     : 'YcMCWnPYP6XWogWEbRBSNbfI',
+      placeholder: "把你的想法告诉我吧~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

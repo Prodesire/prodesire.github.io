@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"prodesire.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言在上一篇文章中，我们介绍了 click 中的“参数”，本文将继续深入了解 click，着重讲解它的“选项”。">
+<meta name="keywords" content="Python,命令行,click">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 命令行之旅：深入 click（二）">
+<meta property="og:url" content="http://prodesire.cn/2019/11/17/Python-命令行之旅：深入-click（二）/index.html">
+<meta property="og:site_name" content="Prodesire">
+<meta property="og:description" content="前言在上一篇文章中，我们介绍了 click 中的“参数”，本文将继续深入了解 click，着重讲解它的“选项”。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+<meta property="og:updated_time" content="2020-07-24T15:00:04.360Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python 命令行之旅：深入 click（二）">
+<meta name="twitter:description" content="前言在上一篇文章中，我们介绍了 click 中的“参数”，本文将继续深入了解 click，着重讲解它的“选项”。">
+<meta name="twitter:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+
+<link rel="canonical" href="http://prodesire.cn/2019/11/17/Python-命令行之旅：深入-click（二）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Python 命令行之旅：深入 click（二） | Prodesire</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?65299c312c93ea8fc5dd3786947453bf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Prodesire" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Prodesire</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-top">
+
+    <a href="/top" rel="section"><i class="fa fa-signal fa-fw"></i>top</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/prodesire" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://prodesire.cn/2019/11/17/Python-命令行之旅：深入-click（二）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Prodesire">
+      <meta itemprop="description" content="Prodesire 的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Prodesire">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python 命令行之旅：深入 click（二）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-17 20:46:50" itemprop="dateCreated datePublished" datetime="2019-11-17T20:46:50+08:00">2019-11-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-24 23:00:04" itemprop="dateModified" datetime="2020-07-24T23:00:04+08:00">2020-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/命令行/" itemprop="url" rel="index"><span itemprop="name">命令行</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/11/17/Python-命令行之旅：深入-click（二）/" class="post-meta-item leancloud_visitors" data-flag-title="Python 命令行之旅：深入 click（二）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/11/17/Python-命令行之旅：深入-click（二）/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/17/Python-命令行之旅：深入-click（二）/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>8.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在上一篇文章中，我们介绍了 <code>click</code> 中的“参数”，本文将继续深入了解 <code>click</code>，着重讲解它的“选项”。</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">本系列文章默认使用 Python 3 作为解释器进行讲解。</span><br><span class="line">若你仍在使用 Python 2，请注意两者之间语法和库的使用差异哦~</span><br></pre></td></tr></table></figure>
+<h2 id="选项"><a href="#选项" class="headerlink" title="选项"></a>选项</h2><p>通过 <code>click.option</code> 可以给命令增加选项，并通过配置函数的参数来配置不同功能的选项。</p>
+<h3 id="给选项命名"><a href="#给选项命名" class="headerlink" title="给选项命名"></a>给选项命名</h3><p><code>click.option</code> 中的命令规则可参考<a href="https://click.palletsprojects.com/en/7.x/parameters/#parameter-names" target="_blank" rel="noopener">参数名称</a>。它接受的前两个参数为长、短选项（顺序随意），其中：</p>
+<ul>
+<li>长选项以 “–” 开头，比如 “–string-to-echo”</li>
+<li>短选项以 “-” 开头，比如 “-s”</li>
+</ul>
+<p>第三个参数为选项参数的名称，如果不指定，将会使用长选项的下划线形式名称：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('-s', '--string-to-echo')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">echo</span><span class="params">(string_to_echo)</span>:</span></span><br><span class="line">    click.echo(string_to_echo)</span><br></pre></td></tr></table></figure>
+<p>显示指定为 string</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('-s', '--string-to-echo', 'string')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">echo</span><span class="params">(string)</span>:</span></span><br><span class="line">    click.echo(string)</span><br></pre></td></tr></table></figure>
+<h3 id="基本值选项"><a href="#基本值选项" class="headerlink" title="基本值选项"></a>基本值选项</h3><p>值选项是非常常用的选项，它接受一个值。如果在命令行中提供了值选项，则需要提供对应的值；反之则使用默认值。若没在 <code>click.option</code> 中指定默认值，则默认值为 <code>None</code>，且该选项的类型为 <a href="https://click.palletsprojects.com/en/7.x/api/#click.STRING" target="_blank" rel="noopener">STRING</a>；反之，则选项类型为默认值的类型。</p>
+<p>比如，提供默认值为 1，则选项类型为 <a href="https://click.palletsprojects.com/en/7.x/api/#click.INT" target="_blank" rel="noopener">INT</a>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--n', default=1)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dots</span><span class="params">(n)</span>:</span></span><br><span class="line">    click.echo(<span class="string">'.'</span> * n)</span><br></pre></td></tr></table></figure>
+<p>如果要求选项为必填，则可指定 <code>click.option</code> 的 <code>required=True</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--n', required=True, type=int)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dots</span><span class="params">(n)</span>:</span></span><br><span class="line">    click.echo(<span class="string">'.'</span> * n)</span><br></pre></td></tr></table></figure>
+<p>如果选项名称和 Python 中的关键字冲突，则可以显式的指定选项名称。比如将 <code>--from</code> 的名称设置为 <code>from_</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--from', '-f', 'from_')</span></span><br><span class="line"><span class="meta">@click.option('--to', '-t')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reserved_param_name</span><span class="params">(from_, to)</span>:</span></span><br><span class="line">    click.echo(<span class="string">f'from <span class="subst">&#123;from_&#125;</span> to <span class="subst">&#123;to&#125;</span>'</span>)</span><br></pre></td></tr></table></figure>
+<p>如果要在帮助中显式默认值，则可指定 <code>click.option</code> 的 <code>show_default=True</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--n', default=1, show_default=True)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dots</span><span class="params">(n)</span>:</span></span><br><span class="line">    click.echo(<span class="string">'.'</span> * n)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ dots --<span class="built_in">help</span></span><br><span class="line">Usage: dots [OPTIONS]</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  --n INTEGER  [default: 1]</span><br><span class="line">  --<span class="built_in">help</span>       Show this message and <span class="built_in">exit</span>.</span><br></pre></td></tr></table></figure>
+<h3 id="多值选项"><a href="#多值选项" class="headerlink" title="多值选项"></a>多值选项</h3><p>有时，我们会希望命令行中一个选项能接收多个值，通过指定 <code>click.option</code> 中的 <code>nargs</code> 参数（必须是大于等于 0）。这样，接收的多值选项就会变成一个元组。</p>
+<p>比如，在下面的示例中，当通过 <code>--pos</code> 指定多个值时，<code>pos</code> 变量就是一个元组，里面的每个元素是一个 <code>float</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--pos', nargs=2, type=float)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">findme</span><span class="params">(pos)</span>:</span></span><br><span class="line">    click.echo(pos)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ findme --pos 2.0 3.0</span><br><span class="line">(1.0, 2.0)</span><br></pre></td></tr></table></figure>
+<p>有时，通过同一选项指定的多个值得类型可能不同，这个时候可以指定 <code>click.option</code> 中的 <code>type=(类型1, 类型2, ...)</code> 来实现。而由于元组的长度同时表示了值的数量，所以就无须指定 <code>nargs</code> 参数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--item', type=(str, int))</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">putitem</span><span class="params">(item)</span>:</span></span><br><span class="line">    click.echo(<span class="string">'name=%s id=%d'</span> % item)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ putitem --item peter 1338</span><br><span class="line">name=peter id=1338</span><br></pre></td></tr></table></figure>
+<h3 id="多选项"><a href="#多选项" class="headerlink" title="多选项"></a>多选项</h3><p>不同于多值选项是通过一个选项指定多个值，多选项则是使用多个相同选项分别指定值，通过 <code>click.option</code> 中的 <code>multiple=True</code> 来实现。</p>
+<p>当我们定义如下多选项：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--message', '-m', multiple=True)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">commit</span><span class="params">(message)</span>:</span></span><br><span class="line">    click.echo(<span class="string">'\n'</span>.join(message))</span><br></pre></td></tr></table></figure>
+<p>便可以指定任意数量个选项来指定值，获取到的 <code>message</code> 是一个元组：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ commit -m foo -m bar --message baz</span><br><span class="line">foo</span><br><span class="line">bar</span><br><span class="line">baz</span><br></pre></td></tr></table></figure>
+<h3 id="计值选项"><a href="#计值选项" class="headerlink" title="计值选项"></a>计值选项</h3><p>有时我们可能需要获得选项的数量，那么可以指定 <code>click.option</code> 中的 <code>count=True</code> 来实现。</p>
+<p>最常见的使用场景就是指定多个 <code>--verbose</code> 或 <code>-v</code> 选项来表示输出内容的详细程度。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('-v', '--verbose', count=True)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">log</span><span class="params">(verbose)</span>:</span></span><br><span class="line">    click.echo(<span class="string">f'Verbosity: <span class="subst">&#123;verbose&#125;</span>'</span>)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">log</span> -vvv</span><br><span class="line">Verbosity: 3</span><br></pre></td></tr></table></figure>
+<p>通过上面的例子，<code>verbose</code> 就是数字，表示 <code>-v</code> 选项的数量，由此可以进一步使用该值来控制日志的详细程度。</p>
+<h3 id="布尔选项"><a href="#布尔选项" class="headerlink" title="布尔选项"></a>布尔选项</h3><p>布尔选项用来表示真或假，它有多种实现方式：</p>
+<ul>
+<li>通过 <code>click.option</code> 的 <code>is_flag=True</code> 参数来实现：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--shout', is_flag=True)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">info</span><span class="params">(shout)</span>:</span></span><br><span class="line">    rv = sys.platform</span><br><span class="line">    <span class="keyword">if</span> shout:</span><br><span class="line">        rv = rv.upper() + <span class="string">'!!!!111'</span></span><br><span class="line">    click.echo(rv)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ info --shout</span><br><span class="line">LINUX!!!!111</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过在 <code>click.option</code> 的选项定义中使用 <code>/</code> 分隔表示真假两个选项来实现：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--shout/--no-shout', default=False)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">info</span><span class="params">(shout)</span>:</span></span><br><span class="line">    rv = sys.platform</span><br><span class="line">    <span class="keyword">if</span> shout:</span><br><span class="line">        rv = rv.upper() + <span class="string">'!!!!111'</span></span><br><span class="line">    click.echo(rv)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ info --shout</span><br><span class="line">LINUX!!!!111</span><br><span class="line">$ info --no-shout</span><br><span class="line">linux</span><br></pre></td></tr></table></figure>
+<p>在 Windows 中，一个选项可以以 <code>/</code> 开头，这样就会真假选项的分隔符冲突了，这个时候可以使用 <code>;</code> 进行分隔：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('/debug;/no-debug')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">log</span><span class="params">(debug)</span>:</span></span><br><span class="line">    click.echo(<span class="string">f'debug=<span class="subst">&#123;debug&#125;</span>'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    log()</span><br></pre></td></tr></table></figure>
+<p>在 cmd 中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="built_in">log</span> /debug</span><br><span class="line">debug=True</span><br></pre></td></tr></table></figure>
+<h3 id="特性切换选项"><a href="#特性切换选项" class="headerlink" title="特性切换选项"></a>特性切换选项</h3><p>所谓特性切换就是切换同一个操作对象的不同特性，比如指定 <code>--upper</code> 就让输出大写，指定 <code>--lower</code> 就让输出小写。这么来看，布尔值其实是特性切换的一个特例。</p>
+<p>要实现特性切换选项，需要让多个选项都有相同的参数名称，并且定义它们的标记值 <code>flag_value</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--upper', 'transformation', flag_value='upper',</span></span><br><span class="line">              default=<span class="keyword">True</span>)</span><br><span class="line"><span class="meta">@click.option('--lower', 'transformation', flag_value='lower')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">info</span><span class="params">(transformation)</span>:</span></span><br><span class="line">    click.echo(getattr(sys.platform, transformation)())</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ info --upper</span><br><span class="line">LINUX</span><br><span class="line">$ info --lower</span><br><span class="line">linux</span><br><span class="line">$ info</span><br><span class="line">LINUX</span><br></pre></td></tr></table></figure>
+<p>在上面的示例中，<code>--upper</code> 和 <code>--lower</code> 都有相同的参数值 <code>transformation</code>：</p>
+<ul>
+<li>当指定 <code>--upper</code> 时，<code>transformation</code> 就是 <code>--upper</code> 选项的标记值 <code>upper</code></li>
+<li>当指定 <code>--lower</code> 时，<code>transformation</code> 就是 <code>--lower</code> 选项的标记值 <code>lower</code></li>
+</ul>
+<p>进而就可以做进一步的业务逻辑处理。</p>
+<h3 id="选择项选项"><a href="#选择项选项" class="headerlink" title="选择项选项"></a>选择项选项</h3><p><code>选择项选项</code> 和 上篇文章中介绍的 <code>选择项参数</code> 类似，只不过是限定选项内容，依旧是通过 <code>type=click.Choice</code> 实现。此外，<code>case_sensitive=False</code> 还可以忽略选项内容的大小写。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--hash-type',</span></span><br><span class="line">              type=click.Choice([<span class="string">'MD5'</span>, <span class="string">'SHA1'</span>], case_sensitive=<span class="keyword">False</span>))</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">digest</span><span class="params">(hash_type)</span>:</span></span><br><span class="line">    click.echo(hash_type)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ digest --<span class="built_in">hash</span>-type=MD5</span><br><span class="line">MD5</span><br><span class="line"></span><br><span class="line">$ digest --<span class="built_in">hash</span>-type=md5</span><br><span class="line">MD5</span><br><span class="line"></span><br><span class="line">$ digest --<span class="built_in">hash</span>-type=foo</span><br><span class="line">Usage: digest [OPTIONS]</span><br><span class="line">Try <span class="string">"digest --help"</span> <span class="keyword">for</span> <span class="built_in">help</span>.</span><br><span class="line"></span><br><span class="line">Error: Invalid value <span class="keyword">for</span> <span class="string">"--hash-type"</span>: invalid choice: foo. (choose from MD5, SHA1)</span><br><span class="line"></span><br><span class="line">$ digest --<span class="built_in">help</span></span><br><span class="line">Usage: digest [OPTIONS]</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  --<span class="built_in">hash</span>-type [MD5|SHA1]</span><br><span class="line">  --<span class="built_in">help</span>                  Show this message and <span class="built_in">exit</span>.</span><br></pre></td></tr></table></figure>
+<h3 id="提示选项"><a href="#提示选项" class="headerlink" title="提示选项"></a>提示选项</h3><p>顾名思义，当提供了选项却没有提供对应的值时，会提示用户输入值。这种交互式的方式会让命令行变得更加友好。通过指定 <code>click.option</code> 中的 <code>prompt</code> 可以实现。</p>
+<ul>
+<li>当 <code>prompt=True</code> 时，提示内容为选项的参数名称</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--name', prompt=True)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(name)</span>:</span></span><br><span class="line">    click.echo(<span class="string">f'Hello <span class="subst">&#123;name&#125;</span>!'</span>)</span><br></pre></td></tr></table></figure>
+<p>在命令行调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ hello --name=John</span><br><span class="line">Hello John!</span><br><span class="line">$ hello</span><br><span class="line">Name: John</span><br><span class="line">Hello John!</span><br></pre></td></tr></table></figure>
+<ul>
+<li>当 <code>prompt=&#39;Your name please&#39;</code> 时，提示内容为指定内容</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--name', prompt='Your name please')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(name)</span>:</span></span><br><span class="line">    click.echo(<span class="string">f'Hello <span class="subst">&#123;name&#125;</span>!'</span>)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ hello</span><br><span class="line">Your name please: John</span><br><span class="line">Hello John!</span><br></pre></td></tr></table></figure>
+<p>基于提示选项，我们还可以指定 <code>hide_input=True</code> 来隐藏输入，<code>confirmation_prompt=True</code> 来让用户进行二次输入，这非常适合输入密码的场景。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--password', prompt=True, hide_input=True,</span></span><br><span class="line">              confirmation_prompt=<span class="keyword">True</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">encrypt</span><span class="params">(password)</span>:</span></span><br><span class="line">    click.echo(<span class="string">f'Encrypting password to <span class="subst">&#123;password.encode(<span class="string">"rot13"</span>)&#125;</span>'</span>)</span><br></pre></td></tr></table></figure>
+<p>当然，也可以直接使用 <code>click.password_option</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.password_option()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">encrypt</span><span class="params">(password)</span>:</span></span><br><span class="line">    click.echo(<span class="string">f'Encrypting password to <span class="subst">&#123;password.encode(<span class="string">"rot13"</span>)&#125;</span>'</span>)</span><br></pre></td></tr></table></figure>
+<p>我们还可以给提示选项设置默认值，通过 <code>default</code> 参数进行设置，如果被设置为函数，则可以实现动态默认值。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--username', prompt=True,</span></span><br><span class="line">              default=<span class="keyword">lambda</span>: os.environ.get(<span class="string">'USER'</span>, <span class="string">''</span>))</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(username)</span>:</span></span><br><span class="line">    print(<span class="string">"Hello,"</span>, username)</span><br></pre></td></tr></table></figure>
+<p>详情请阅读 <a href="https://click.palletsprojects.com/en/7.x/options/#dynamic-defaults-for-prompts" target="_blank" rel="noopener">Dynamic Defaults for Prompts</a>。</p>
+<h3 id="范围选项"><a href="#范围选项" class="headerlink" title="范围选项"></a>范围选项</h3><p>如果希望选项的值在某个范围内，就可以使用范围选项，通过指定 <code>type=click.IntRange</code> 来实现。它有两种模式：</p>
+<ul>
+<li>默认模式（非强制模式），如果值不在区间范围内将会引发一个错误。如 <code>type=click.IntRange(0, 10)</code> 表示范围是 [0, 10]，超过该范围报错</li>
+<li>强制模式，如果值不在区间范围内，将会强制选取一个区间临近值。如 <code>click.IntRange(0, None, clamp=True)</code> 表示范围是 [0, +∞)，小于 0 则取 0，大于 20 则取 20。其中 <code>None</code> 表示没有限制</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--count', type=click.IntRange(0, None, clamp=True))</span></span><br><span class="line"><span class="meta">@click.option('--digit', type=click.IntRange(0, 10))</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">repeat</span><span class="params">(count, digit)</span>:</span></span><br><span class="line">    click.echo(str(digit) * count)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    repeat()</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ repeat --count=1000 --digit=5</span><br><span class="line">55555555555555555555</span><br><span class="line">$ repeat --count=1000 --digit=12</span><br><span class="line">Usage: repeat [OPTIONS]</span><br><span class="line"></span><br><span class="line">Error: Invalid value <span class="keyword">for</span> <span class="string">"--digit"</span>: 12 is not <span class="keyword">in</span> the valid range of 0 to 10.</span><br></pre></td></tr></table></figure>
+<h3 id="回调和优先"><a href="#回调和优先" class="headerlink" title="回调和优先"></a>回调和优先</h3><p><strong>回调</strong><br>通过 <code>click.option</code> 中的 <code>callback</code> 可以指定选项的回调，它会在该选项被解析后调用。回调函数的签名如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">callback</span><span class="params">(ctx, param, value)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<p>其中：</p>
+<ul>
+<li>ctx 是命令的上下文 <a href="https://click.palletsprojects.com/en/7.x/api/#click.Context" target="_blank" rel="noopener">click.Context</a></li>
+<li>param 为选项变量 <a href="https://click.palletsprojects.com/en/7.x/api/#click.Option" target="_blank" rel="noopener">click.Option</a></li>
+<li>value 为选项的值</li>
+</ul>
+<p>使用回调函数可以完成额外的参数校验逻辑。比如，通过 –rolls 的选项来指定摇骰子的方式，内容为“{N}d{M}”，表示 M 面的骰子摇 N 次，N 和 M 都是数字。在真正的处理 rolls 前，我们需要通过回调函数来校验它的格式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">validate_rolls</span><span class="params">(ctx, param, value)</span>:</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        rolls, dice = map(int, value.split(<span class="string">'d'</span>, <span class="number">2</span>))</span><br><span class="line">        <span class="keyword">return</span> (dice, rolls)</span><br><span class="line">    <span class="keyword">except</span> ValueError:</span><br><span class="line">        <span class="keyword">raise</span> click.BadParameter(<span class="string">'rolls need to be in format NdM'</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--rolls', callback=validate_rolls, default='1d6')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">roll</span><span class="params">(rolls)</span>:</span></span><br><span class="line">    click.echo(<span class="string">'Rolling a %d-sided dice %d time(s)'</span> % rolls)</span><br></pre></td></tr></table></figure>
+<p>这样，当我们输入错误格式时，变会校验不通过：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ roll --rolls=42</span><br><span class="line">Usage: roll [OPTIONS]</span><br><span class="line"></span><br><span class="line">Error: Invalid value <span class="keyword">for</span> <span class="string">"--rolls"</span>: rolls need to be <span class="keyword">in</span> format NdM</span><br></pre></td></tr></table></figure>
+<p>输入正确格式时，则正常输出信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ roll --rolls=2d12</span><br><span class="line">Rolling a 12-sided dice 2 time(s)</span><br></pre></td></tr></table></figure>
+<p><strong>优先</strong><br>通过 <code>click.option</code> 中的 <code>is_eager</code> 可以让该选项成为优先选项，这意味着它会先于所有选项处理。</p>
+<p>利用回调和优先选项，我们就可以很好地实现 <code>--version</code> 选项。不论命令行中写了多少选项和参数，只要包含了 <code>--version</code>，我们就希望它打印版本就退出，而不执行其他选项的逻辑，那么就需要让它成为优先选项，并且在回调函数中打印版本。</p>
+<p>此外，在 <code>click</code> 中每个选项都对应到命令处理函数的同名参数，如果不想把该选项传递到处理函数中，则需要指定 <code>expose_value=True</code>，于是有：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">print_version</span><span class="params">(ctx, param, value)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> value <span class="keyword">or</span> ctx.resilient_parsing:</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    click.echo(<span class="string">'Version 1.0'</span>)</span><br><span class="line">    ctx.exit()</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--version', is_flag=True, callback=print_version,</span></span><br><span class="line">              expose_value=<span class="keyword">False</span>, is_eager=<span class="keyword">True</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    click.echo(<span class="string">'Hello World!'</span>)</span><br></pre></td></tr></table></figure>
+<p>当然 <code>click</code> 提供了便捷的 <code>click.version_option</code> 来实现 <code>--version</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.version_option(version='0.1.0')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<h3 id="Yes-选项"><a href="#Yes-选项" class="headerlink" title="Yes 选项"></a>Yes 选项</h3><p>基于前面的学习，我们可以实现 Yes 选项，也就是对于某些操作，不提供 <code>--yes</code> 则进行二次确认，提供了则直接操作：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">abort_if_false</span><span class="params">(ctx, param, value)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> value:</span><br><span class="line">        ctx.abort()</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--yes', is_flag=True, callback=abort_if_false,</span></span><br><span class="line">              expose_value=<span class="keyword">False</span>,</span><br><span class="line">              prompt=<span class="string">'Are you sure you want to drop the db?'</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dropdb</span><span class="params">()</span>:</span></span><br><span class="line">    click.echo(<span class="string">'Dropped all tables!'</span>)</span><br></pre></td></tr></table></figure>
+<p>当然 <code>click</code> 提供了便捷的 <code>click.confirmation_option</code> 来实现 Yes 选项：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.confirmation_option(prompt='Are you sure you want to drop the db?')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dropdb</span><span class="params">()</span>:</span></span><br><span class="line">    click.echo(<span class="string">'Dropped all tables!'</span>)</span><br></pre></td></tr></table></figure>
+<p>在命令行中调用则有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ dropdb</span><br><span class="line">Are you sure you want to drop the db? [y/N]: n</span><br><span class="line">Aborted!</span><br><span class="line">$ dropdb --yes</span><br><span class="line">Dropped all tables!</span><br></pre></td></tr></table></figure>
+<h3 id="其他增强功能"><a href="#其他增强功能" class="headerlink" title="其他增强功能"></a>其他增强功能</h3><p><code>click</code> 支持从环境中读取选项的值，这是 <code>argparse</code> 所不支持的，可参阅官方文档的 <a href="https://click.palletsprojects.com/en/7.x/options/#values-from-environment-variables" target="_blank" rel="noopener">Values from Environment Variables</a> 和 <a href="https://click.palletsprojects.com/en/7.x/options/#multiple-values-from-environment-values" target="_blank" rel="noopener">Multiple Values from Environment Values</a>。</p>
+<p><code>click</code> 支持指定选项前缀，你可以不使用 <code>-</code> 作为选项前缀，还可使用 <code>+</code> 或 <code>/</code>，当然在一般情况下并不建议这么做。详情参阅官方文档的 <a href="https://click.palletsprojects.com/en/7.x/options/#other-prefix-characters" target="_blank" rel="noopener">Other Prefix Characters</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>可以看出，<code>click</code> 对命令行选项的支持非常丰富和强大，除了支持 <code>argarse</code> 所支持的所有选项类型外，还提供了诸如 <code>计值选项</code>、<code>特性切换选项</code>、<code>提示选项</code> 等更丰富的选项类型。此外，还提供了从环境中读变量等方便易用的增强功能。简直就是开发命令行程序的利器。</p>
+<p>在下篇文章中，我们着重介绍下 <code>click</code> 的命令和组，这可是实现它的重要特性（任意嵌套命令）的方式。</p>
+<h2 id="相关文章"><a href="#相关文章" class="headerlink" title="相关文章"></a>相关文章</h2><ul>
+<li><a href="/2019/08/13/Python-命令行之旅：初探-argparse/" title="Python 命令行之旅：初探 argparse">Python 命令行之旅：初探 argparse</a></li>
+<li><a href="/2019/08/20/Python-命令行之旅：深入-argparse（一）/" title="Python 命令行之旅：深入 argparse（一）">Python 命令行之旅：深入 argparse（一）</a></li>
+<li><a href="/2019/08/27/Python-命令行之旅：深入-argparse（二）/" title="Python 命令行之旅：深入 argparse（二）">Python 命令行之旅：深入 argparse（二）</a></li>
+<li><a href="/2019/09/04/Python-命令行之旅：使用-argparse-实现-git-命令/" title="Python 命令行之旅：使用 argparse 实现 git 命令">Python 命令行之旅：使用 argparse 实现 git 命令</a></li>
+<li><a href="/2019/10/09/Python-命令行之旅：初探-docopt/" title="Python 命令行之旅：初探 docopt">Python 命令行之旅：初探 docopt</a></li>
+<li><a href="/2019/10/15/Python-命令行之旅：深入-docopt/" title="Python 命令行之旅：深入 docopt">Python 命令行之旅：深入 docopt</a></li>
+<li><a href="/2019/10/30/Python-命令行之旅：使用-docopt-实现-git-命令/" title="Python 命令行之旅：使用 docopt 实现 git 命令">Python 命令行之旅：使用 docopt 实现 git 命令</a></li>
+<li><a href="/2019/11/04/Python-命令行之旅：初探-click/" title="Python 命令行之旅：初探 click">Python 命令行之旅：初探 click</a></li>
+<li><a href="/2019/11/11/Python-命令行之旅：深入-click（一）/" title="Python 命令行之旅：深入 click（一）">Python 命令行之旅：深入 click（一）</a></li>
+<li><a href="/2019/11/17/Python-命令行之旅：深入-click（二）/" title="Python 命令行之旅：深入 click（二）">Python 命令行之旅：深入 click（二）</a></li>
+<li><a href="/2019/11/25/Python-命令行之旅：深入-click（三）/" title="Python 命令行之旅：深入 click（三）">Python 命令行之旅：深入 click（三）</a></li>
+<li><a href="/2019/12/09/Python-命令行之旅：深入-click（四）/" title="Python 命令行之旅：深入 click（四）">Python 命令行之旅：深入 click（四）</a></li>
+<li><a href="/2019/12/14/Python-命令行之旅：使用-click-实现-git-命令/" title="Python 命令行之旅：使用 click 实现 git 命令">Python 命令行之旅：使用 click 实现 git 命令</a></li>
+<li><a href="/2019/12/22/Python-命令行之旅：初探-fire/" title="Python 命令行之旅：初探 fire">Python 命令行之旅：初探 fire</a></li>
+<li><a href="/2019/12/29/Python-命令行之旅：深入-fire（一）/" title="Python 命令行之旅：深入 fire（一）">Python 命令行之旅：深入 fire（一）</a></li>
+<li><a href="/2020/01/05/Python-命令行之旅：深入-fire（二）/" title="Python 命令行之旅：深入 fire（二）">Python 命令行之旅：深入 fire（二）</a></li>
+<li><a href="/2020/01/12/Python-命令行之旅：使用-fire-实现-git-命令/" title="Python 命令行之旅：使用 fire 实现 git 命令">Python 命令行之旅：使用 fire 实现 git 命令</a></li>
+<li><a href="/2020/02/09/Python-命令行之旅：argparse、docopt、click-和-fire-总结篇/" title="Python 命令行之旅：argparse、docopt、click 和 fire 总结篇">Python 命令行之旅：argparse、docopt、click 和 fire 总结篇</a></li>
+<li><a href="/2020/07/02/Python-命令行大乱斗/" title="Python 命令行大乱斗">Python 命令行大乱斗</a>
+</li>
+</ul>
+<div align="center"><br><img src="/images/wechatPublicAccount.png" alt><br></div>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/命令行/" rel="tag"># 命令行</a>
+              <a href="/tags/click/" rel="tag"># click</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/11/Python-命令行之旅：深入-click（一）/" rel="prev" title="Python 命令行之旅：深入 click（一）">
+      <i class="fa fa-chevron-left"></i> Python 命令行之旅：深入 click（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/19/Python-壹周刊-001/" rel="next" title="Python 壹周刊 001">
+      Python 壹周刊 001 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选项"><span class="nav-number">2.</span> <span class="nav-text">选项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#给选项命名"><span class="nav-number">2.1.</span> <span class="nav-text">给选项命名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基本值选项"><span class="nav-number">2.2.</span> <span class="nav-text">基本值选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多值选项"><span class="nav-number">2.3.</span> <span class="nav-text">多值选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多选项"><span class="nav-number">2.4.</span> <span class="nav-text">多选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计值选项"><span class="nav-number">2.5.</span> <span class="nav-text">计值选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#布尔选项"><span class="nav-number">2.6.</span> <span class="nav-text">布尔选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特性切换选项"><span class="nav-number">2.7.</span> <span class="nav-text">特性切换选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选择项选项"><span class="nav-number">2.8.</span> <span class="nav-text">选择项选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#提示选项"><span class="nav-number">2.9.</span> <span class="nav-text">提示选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#范围选项"><span class="nav-number">2.10.</span> <span class="nav-text">范围选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#回调和优先"><span class="nav-number">2.11.</span> <span class="nav-text">回调和优先</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Yes-选项"><span class="nav-number">2.12.</span> <span class="nav-text">Yes 选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他增强功能"><span class="nav-number">2.13.</span> <span class="nav-text">其他增强功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关文章"><span class="nav-number">4.</span> <span class="nav-text">相关文章</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Prodesire"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Prodesire</p>
+  <div class="site-description" itemprop="description">Prodesire 的博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/prodesire" title="GitHub → https://github.com/prodesire" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/prodesire" title="知乎 → https://www.zhihu.com/people/prodesire" rel="noopener" target="_blank"><i class="zhihu fa-fw"></i>知乎</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://codingcat.top/" title="https://codingcat.top/" rel="noopener" target="_blank">编程猫</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Prodesire</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">200k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:02</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz","app_key":"YcMCWnPYP6XWogWEbRBSNbfI","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz',
+      appKey     : 'YcMCWnPYP6XWogWEbRBSNbfI',
+      placeholder: "把你的想法告诉我吧~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

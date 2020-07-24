@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"prodesire.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="（备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。） 最近在网上搜索 Python 和 WMI 相关资料时，发现大部分文章都千篇一律，并且基本上只说了很基础的使用，并未深入说明如何使用 WMI。本文打算更进一步，让我们使用 Python 玩转 WMI。">
+<meta name="keywords" content="Python,Windows,WMI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Python 玩转 WMI">
+<meta property="og:url" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/index.html">
+<meta property="og:site_name" content="Prodesire">
+<meta property="og:description" content="（备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。） 最近在网上搜索 Python 和 WMI 相关资料时，发现大部分文章都千篇一律，并且基本上只说了很基础的使用，并未深入说明如何使用 WMI。本文打算更进一步，让我们使用 Python 玩转 WMI。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/1.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/2.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/3.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/4.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/5.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/6.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/7.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/8.png">
+<meta property="og:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+<meta property="og:updated_time" content="2020-07-24T15:00:04.372Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 Python 玩转 WMI">
+<meta name="twitter:description" content="（备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。） 最近在网上搜索 Python 和 WMI 相关资料时，发现大部分文章都千篇一律，并且基本上只说了很基础的使用，并未深入说明如何使用 WMI。本文打算更进一步，让我们使用 Python 玩转 WMI。">
+<meta name="twitter:image" content="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/1.png">
+
+<link rel="canonical" href="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用 Python 玩转 WMI | Prodesire</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?65299c312c93ea8fc5dd3786947453bf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Prodesire" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Prodesire</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-top">
+
+    <a href="/top" rel="section"><i class="fa fa-signal fa-fw"></i>top</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/prodesire" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://prodesire.cn/2019/10/20/使用-Python-玩转-WMI/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Prodesire">
+      <meta itemprop="description" content="Prodesire 的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Prodesire">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用 Python 玩转 WMI
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-20 12:42:03" itemprop="dateCreated datePublished" datetime="2019-10-20T12:42:03+08:00">2019-10-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-24 23:00:04" itemprop="dateModified" datetime="2020-07-24T23:00:04+08:00">2020-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Windows/" itemprop="url" rel="index"><span itemprop="name">Windows</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Windows/WMI/" itemprop="url" rel="index"><span itemprop="name">WMI</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/10/20/使用-Python-玩转-WMI/" class="post-meta-item leancloud_visitors" data-flag-title="使用 Python 玩转 WMI" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/10/20/使用-Python-玩转-WMI/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/10/20/使用-Python-玩转-WMI/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>（备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。）</p>
+<p>最近在网上搜索 Python 和 WMI 相关资料时，发现大部分文章都千篇一律，并且基本上只说了很基础的使用，并未深入说明如何使用 WMI。本文打算更进一步，让我们使用 Python 玩转 WMI。</p>
+<a id="more"></a>
+<h2 id="什么是-WMI"><a href="#什么是-WMI" class="headerlink" title="什么是 WMI"></a>什么是 WMI</h2><p>具体请看微软官网对 <a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/wmi-start-page" target="_blank" rel="noopener">WMI</a> 的介绍。这里简单说明下，WMI 的全称是 Windows Management Instrumentation，即 Windows 管理规范。它是 Windows 操作系统上管理数据和操作的基础设施。我们可以使用 WMI 脚本或者应用自动化管理任务等。</p>
+<p>从 <a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/using-wmi" target="_blank" rel="noopener">Using WMI</a> 可以知道 WMI 支持如下语言：</p>
+<table>
+<thead>
+<tr>
+<th>Application language</th>
+<th style="text-align:center">Topic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scripts written in Microsoft ActiveX script hosting, including Visual Basic Scripting Edition (VBScript) and Perl</td>
+<td style="text-align:center"><a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/scripting-api-for-wmi" target="_blank" rel="noopener">Scripting API for WMI</a>.<br>Start with <a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/creating-a-wmi-script" target="_blank" rel="noopener">Creating a WMI Script</a>.<br>For script code examples, see <a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/wmi-tasks-for-scripts-and-applications" target="_blank" rel="noopener">WMI Tasks for Scripts and Applications</a> and the TechNet <a href="http://go.microsoft.com/fwlink/p/?linkid=46710" target="_blank" rel="noopener">ScriptCenter</a> Script Repository.</td>
+</tr>
+<tr>
+<td>Windows PowerShell</td>
+<td style="text-align:center"><a href="https://docs.microsoft.com/zh-cn/powershell/scripting/getting-started/getting-started-with-windows-powershell?view=powershell-6" target="_blank" rel="noopener">Getting Started with Windows PowerShell</a><br>WMI PowerShell Cmdlets, such as <a href="https://docs.microsoft.com/en-us/previous-versions//dd315295%28v=technet.10%29" target="_blank" rel="noopener">Get-WmiObject</a>.</td>
+</tr>
+<tr>
+<td>Visual Basic applications</td>
+<td style="text-align:center"><a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/scripting-api-for-wmi" target="_blank" rel="noopener">Scripting API for WMI</a>.</td>
+</tr>
+<tr>
+<td>Active Server Pages</td>
+<td style="text-align:center"><a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/scripting-api-for-wmi" target="_blank" rel="noopener">Scripting API for WMI</a>.<br>Start with <a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/creating-active-server-pages-for-wmi" target="_blank" rel="noopener">Creating Active Server Pages for WMI</a>.</td>
+</tr>
+<tr>
+<td>C++ applications</td>
+<td style="text-align:center"><a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/com-api-for-wmi" target="_blank" rel="noopener">COM API for WMI</a>.<br>Start with <a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/creating-a-wmi-application-using-c-" target="_blank" rel="noopener">Creating a WMI Application Using C++</a> and <a href="https://docs.microsoft.com/zh-cn/windows/win32/wmisdk/wmi-c---application-examples" target="_blank" rel="noopener">WMI C++ Application Examples</a> (contains examples).</td>
+</tr>
+<tr>
+<td>.NET Framework applications written in C#, Visual Basic .NET, or J#</td>
+<td style="text-align:center">Classes in the <a href="https://docs.microsoft.com/en-us/previous-versions//hh872326%28v=vs.85%29" target="_blank" rel="noopener">Microsoft.Management.Infrastructure</a> namespace. (The System.Management namespace is no longer supported). For more information, see <a href="https://docs.microsoft.com/en-us/previous-versions/bb404655%28v=vs.90%29" target="_blank" rel="noopener">WMI .NET Overview</a>.</td>
+</tr>
+</tbody>
+</table>
+<p>很遗憾，WMI 并不原生支持 Python。不过没有关系，它支持 VB，而 Python 中的两个第三方库 wmi 和 win32com，均能以类似 VB 的用法来使用。那么接下来，我们来讲讲如何使用。</p>
+<h2 id="使用-WMI"><a href="#使用-WMI" class="headerlink" title="使用 WMI"></a>使用 WMI</h2><h3 id="使用-wmi-库操作-WMI"><a href="#使用-wmi-库操作-WMI" class="headerlink" title="使用 wmi 库操作 WMI"></a>使用 wmi 库操作 WMI</h3><p>以下是一个遍历所有进程，所有服务的示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> wmi</span><br><span class="line">c = wmi.WMI ()</span><br><span class="line"><span class="comment"># 遍历进程</span></span><br><span class="line"><span class="keyword">for</span> process <span class="keyword">in</span> c.Win32_Process ():</span><br><span class="line">    <span class="keyword">print</span> process.ProcessId, process.Name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历服务</span></span><br><span class="line"><span class="keyword">for</span> service <span class="keyword">in</span> c.Win32_Service ():</span><br><span class="line">    <span class="keyword">print</span> service.ProcessId, service.Name</span><br></pre></td></tr></table></figure>
+<p>可以看到，使用起来非常简单。但是有两个问题：一是 wmi 库实在是太慢了，能不能快点？二是如何知道例子中 process 和 service 有哪些属性（比如 ProcessId 等）？由于 wmi 库是动态生成底层执行语句，用 dir(process)这种方式是获取不到 ProcessId 这种属性的。</p>
+<p>针对第一个问题，我们可以使用 win32com 这个库来解决，它相较于 wmi 的速度快了很多。而第二个问题，先卖个关子，后文会有介绍。</p>
+<h3 id="使用-win32com-库操作-WMI"><a href="#使用-win32com-库操作-WMI" class="headerlink" title="使用 win32com 库操作 WMI"></a>使用 win32com 库操作 WMI</h3><p>win32com 能模仿 VB 的行为，想了解如何使用 win32com 来操作 WMI，最直接的方式是了解如何使用 VB 来操作 WMI。在微软的官网上提供了很多现成的例子：WMI Tasks: Processes， WMI Tasks: Services。</p>
+<p>其中一个例子关于进程是这样的：</p>
+<figure class="highlight vb"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">strComputer = <span class="string">"."</span></span><br><span class="line"><span class="keyword">Set</span> objWMIService = GetObject(<span class="string">"winmgmts:"</span> &amp; <span class="string">"&#123;impersonationLevel=impersonate&#125;!\\"</span> &amp; strComputer &amp; <span class="string">"\root\cimv2"</span>)</span><br><span class="line"><span class="keyword">Set</span> colProcesses = objWMIService.ExecQuery(<span class="string">"Select * from Win32_Process"</span>)</span><br><span class="line"><span class="keyword">For</span> <span class="keyword">Each</span> objProcess <span class="keyword">in</span> colProcesses</span><br><span class="line"></span><br><span class="line">    Wscript.Echo <span class="string">"Process: "</span> &amp; objProcess.Name</span><br><span class="line">    sngProcessTime = (<span class="built_in">CSng</span>(objProcess.KernelModeTime) + <span class="built_in">CSng</span>(objProcess.UserModeTime)) / <span class="number">10000000</span></span><br><span class="line">    Wscript.Echo <span class="string">"Processor Time: "</span> &amp; sngProcessTime</span><br><span class="line">    Wscript.Echo <span class="string">"Process ID: "</span> &amp; objProcess.ProcessID</span><br><span class="line">    Wscript.Echo <span class="string">"Working Set Size: "</span> &amp; objProcess.WorkingSetSize</span><br><span class="line">    Wscript.Echo <span class="string">"Page File Size: "</span> &amp; objProcess.PageFileUsage</span><br><span class="line">    Wscript.Echo <span class="string">"Page Faults: "</span> &amp; objProcess.PageFaults</span><br><span class="line"><span class="keyword">Next</span></span><br></pre></td></tr></table></figure>
+<p>它做了这样一件事：首先通过 GetObject 连接到 Win32_Process 所在的名称空间，然后执行 WQL 语句（类似 SQL 的查询语句）查到所有的进程，再把每一个进程的相关信息打印出来。WQL 的具体用法请见官网，这里不详细介绍。</p>
+<p>那么用 win32com 就可以这么写（例子中打印的属性为了简便，就不像上面那么多啦）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> win32com.client <span class="keyword">import</span> GetObject</span><br><span class="line"></span><br><span class="line">wmi = GetObject(<span class="string">'winmgmts:/root/cimv2'</span>)</span><br><span class="line"><span class="comment"># wmi = GetObject('winmgmts:') #更简单的写法</span></span><br><span class="line">processes = wmi.ExecQuery(<span class="string">'Select * from Win32_Process'</span>)</span><br><span class="line"><span class="keyword">for</span> process <span class="keyword">in</span> processes:</span><br><span class="line">    print(process.ProcessID, process.Name)</span><br></pre></td></tr></table></figure>
+<p>看上去，VB 和 win32com 的用法非常接近！那么当我们想要使用 win32com 对 WMI 进行操作时，就可以参考微软官网上 VB 的例子，然后比葫芦画瓢写出 Python 版的代码。</p>
+<p>上例中，我们使用了查询函数 ExecQuery 来查询符合条件的内容，不过如果我们仅仅是想要获得所有的数据，而没有特定的限定条件，就可以使用更简单的方式——InstancesOf，那么就可以写成下面这样：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> win32com.client <span class="keyword">import</span> GetObject</span><br><span class="line"></span><br><span class="line">wmi = GetObject(<span class="string">'winmgmts:/root/cimv2'</span>)</span><br><span class="line">processes = wmi.InstancesOf(<span class="string">'Win32_Process'</span>)</span><br><span class="line"><span class="keyword">for</span> process <span class="keyword">in</span> processes:</span><br><span class="line">    print(process.ProcessID, process.Name)</span><br></pre></td></tr></table></figure>
+<p>有读者可能会问，我们怎么知道自己想要了解的内容在哪个名称空间，我们应该获取哪个实例，又该获取实例中的哪些属性呢？</p>
+<h2 id="WMI-的名称空间"><a href="#WMI-的名称空间" class="headerlink" title="WMI 的名称空间"></a>WMI 的名称空间</h2><p>使用下面的脚本可以获得当前计算机上的名称空间：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> win32com.client <span class="keyword">import</span> GetObject</span><br><span class="line"><span class="keyword">import</span> pywintypes</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">enum_namespace</span><span class="params">(name)</span>:</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        wmi = GetObject(<span class="string">'winmgmts:/'</span> + name)</span><br><span class="line">        namespaces = wmi.InstancesOf(<span class="string">'__Namespace'</span>)</span><br><span class="line">        <span class="keyword">for</span> namespace <span class="keyword">in</span> namespaces:</span><br><span class="line">            enum_namespace(<span class="string">'&#123;name&#125;/&#123;subname&#125;'</span>.format(name=name,</span><br><span class="line">                                                     subname=namespace.Name))</span><br><span class="line">    <span class="keyword">except</span> pywintypes.com_error:</span><br><span class="line">        print(name, <span class="string">'limit of authority'</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        print(name)</span><br><span class="line">enum_namespace(<span class="string">'root'</span>)</span><br></pre></td></tr></table></figure>
+<p>获得的内容大概是这样的(…表示省略了一些输出内容)：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">root</span><br><span class="line">root/subscription</span><br><span class="line">root/subscription/ms_409</span><br><span class="line">root/DEFAULT</span><br><span class="line">root/DEFAULT/ms_409</span><br><span class="line">root/CIMV2</span><br><span class="line">root/CIMV2/Security</span><br><span class="line">...</span><br><span class="line">root/Cli</span><br><span class="line">root/Cli/MS_409</span><br><span class="line">root/SECURITY</span><br><span class="line">...</span><br><span class="line">root/WMI</span><br><span class="line">root/WMI/ms_409</span><br><span class="line">root/directory</span><br><span class="line">root/directory/LDAP</span><br><span class="line">root/directory/LDAP/ms_409</span><br><span class="line">root/Interop</span><br><span class="line">root/Interop/ms_409</span><br><span class="line">root/ServiceModel</span><br><span class="line">root/SecurityCenter</span><br><span class="line">root/MSAPPS12</span><br><span class="line">root/Microsoft</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>通用的名称空间的简单介绍：</p>
+<p>root 是名称空间层次结构的最高级。</p>
+<p>CIMV2 名称空间存放着和系统管理域相关（比如计算机以及它们的操作系统）的对象。</p>
+<p>DEFAULT 名称空间存放着默认被创建而不指定名称空间的类。</p>
+<p>directory 目录服务的通用名称空间，WMI 创建了名为 LDAP 的子名称空间。</p>
+<p>SECURITY 用来支持 Windows 9x 计算机上的 WMI 的名称空间。</p>
+<p>WMI 使用 Windows Driver Model providers 的类所在的名称空间。这是为了避免和 CIMV2 名称空间中类名冲突。</p>
+<p>其中，root/CIMV2 可以说是最为基本和常用的名称空间了。它的作用主要是提供关于计算机、磁盘、外围设备、文件、文件夹、文件系统、网络组件、操作系统、打印机、进程、安全性、服务、共享、SAM 用户及组，以及更多资源的信息；管理 Windows 事件日志，如读取、备份、清除、复制、删除、监视、重命名、压缩、解压缩和更改事件日志设置。</p>
+<h2 id="类-实例和属性-值"><a href="#类-实例和属性-值" class="headerlink" title="类/实例和属性/值"></a>类/实例和属性/值</h2><p>了解了名称空间的获取，每个名称空间的主要功能，那么如何获取特定名称空间下所有的类，以及它们的属性和值呢？</p>
+<p>Windows 提供了一个 WMI 测试器，使得查询这些内容变得尤为方便。按下”win+R”，输入 wbemtest，从而打开 WMI 测试器。打开后的界面如下：</p>
+<img src="/2019/10/20/使用-Python-玩转-WMI/1.png">
+<p>点击“连接”，输入想要查询的名称空间，再点击“连接”即可连到特定名称空间。</p>
+<p>然后点击“枚举类”，在弹出的界面中选择“递归”，然后点击“确定”，就会得到这个名称空间下所有的类：</p>
+<img src="/2019/10/20/使用-Python-玩转-WMI/2.png">
+<img src="/2019/10/20/使用-Python-玩转-WMI/3.png">
+<p>从上图可以看到，之前举例中提到的 Win32_Process 位列其中，我们不妨双击它，看看关于它的具体内容：</p>
+<img src="/2019/10/20/使用-Python-玩转-WMI/4.png">
+<p>我们可以很容易地找到 Win32_Process 的属性和方法。除了使用 wbemtest 查看特定名称空间下的所有类，我们还可以在 WMI/MI/OMI Providers 中找到所有的类。我们依次在这个页面中点击 CIMWin32, Win32, Power Management Events，Win32 Provider，Operating System Classes，Win32_Process 最终找到 Win32_Process 的属性和方法：</p>
+<img src="/2019/10/20/使用-Python-玩转-WMI/5.png">
+<p>对比上面两张图，里面的方法都是一致的。</p>
+<p>那么如何获得实例和它的值呢？我们继续在刚刚打开的 wbemtest 界面中点击右边的“实例”按钮，就会显示所有的进程实例。双击某个具体的实例，然后在弹出的界面中点击右侧的“显示 MOF”按钮就会显示这个实例中具体属性的值。</p>
+<img src="/2019/10/20/使用-Python-玩转-WMI/6.png">
+<img src="/2019/10/20/使用-Python-玩转-WMI/7.png">
+<p>通过上述定位名称空间、类、属性的方法，我们就可以愉快地使用 Python 来玩耍 WMI。</p>
+<h2 id="实战，以-IIS-为例"><a href="#实战，以-IIS-为例" class="headerlink" title="实战，以 IIS 为例"></a>实战，以 IIS 为例</h2><p>了解了这么多内容，咱们就拿个对象练练手。现在有这么个需求，我们想要获取 IIS 的版本号以及它所有的站点名称，怎么办？</p>
+<p>在微软官网上比较容易的找到 IIS WMI 的说明，根据直觉，我们要查询的信息可能会是在类名中包含 setting 的类中，那么看起来比较有可能的有 IIsSetting (WMI), IIsWebServerSetting (WMI), IIsWebInfoSetting (WMI)。</p>
+<p>对这些类都分别看一看，发现 IIsSetting 中提供了一个例子：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">o = getobj(<span class="string">"winmgmts:/root/microsoftiisv2"</span>)</span><br><span class="line">nodes = o.ExecQuery(<span class="string">"select * from IIsWebServerSetting where name='w3svc/1'"</span>)</span><br><span class="line">e = <span class="keyword">new</span> Enumerator(nodes)</span><br><span class="line">for(; ! e.atEnd(); e.moveNext()) &#123;</span><br><span class="line">  WScript.Echo(e.item().Name + <span class="string">" ("</span> + e.item().Path_.<span class="keyword">Class</span> + <span class="string">")"</span>)</span><br><span class="line">&#125;</span><br><span class="line">// The output should be:</span><br><span class="line">//   w3svc/1 (IIsWebServerSetting)</span><br><span class="line"></span><br><span class="line">nodes = o.ExecQuery(<span class="string">"select * from</span></span><br><span class="line"><span class="string">IIsSetting where name='w3svc/1'"</span>)</span><br><span class="line">e = <span class="keyword">new</span> Enumerator(nodes)</span><br><span class="line">for(; ! e.atEnd(); e.moveNext()) &#123;</span><br><span class="line">  WScript.Echo(e.item().Name + <span class="string">" ("</span> + e.item().Path_.<span class="keyword">Class</span> + <span class="string">")"</span>)</span><br><span class="line">&#125;</span><br><span class="line">// The output should be:</span><br><span class="line">//   w3svc/1 (IIsIPSecuritySetting)</span><br><span class="line">//   w3svc/1 (IIsWebServerSetting)</span><br></pre></td></tr></table></figure>
+<p>从这个例子中，我们可以知道 iis 的名称空间是‘/root/microsoftiisv2’，然后我们可以直接在这个空间中查询各种相关类，比如说“IIsWebServerSetting”。</p>
+<p>结合 wbemtest 和 IIS 管理器，我们可以看出 IIsWebServerSetting 实例中的 ServerComment 属性值和网站名称一致：</p>
+<img src="/2019/10/20/使用-Python-玩转-WMI/8.png">
+<p>而版本信息则在类名包含 setting 的类中无法找到，那再去类名包含 info 的类中瞧一瞧。果然，在 IIsWebInfo (WMI)中找到了 MajorIIsVersionNumber 和 MinorIIsVersionNumber 属性，分别表示大版本和小版本。那么我们就能比较轻松地写出下面的 Python 代码来获得版本和站点名称：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="keyword">from</span> win32com.client <span class="keyword">import</span> GetObject</span><br><span class="line"></span><br><span class="line">wmi = GetObject(<span class="string">'winmgmts:/root/microsoftiisv2'</span>)</span><br><span class="line"><span class="comment"># 版本</span></span><br><span class="line">webinfo = wmi.execquery(<span class="string">'select * from IIsWebInfo '</span>)[<span class="number">0</span>]</span><br><span class="line">version = <span class="string">'&#123;major&#125;.&#123;min&#125;'</span>.format(major=webinfo.MajorIIsVersionNumber,</span><br><span class="line">                                 min=webinfo.MinorIIsVersionNumber)</span><br><span class="line">print(version)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 站点名称</span></span><br><span class="line">websettings = wmi.execquery(<span class="string">'select * from IIsWebServerSetting '</span>)</span><br><span class="line">websites = <span class="string">' | '</span>.join(setting.ServerComment <span class="keyword">for</span> setting <span class="keyword">in</span> websettings)</span><br><span class="line">print(websites)</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>使用 Python 操作 WMI，最大的难点并不在于如何编写 Python 语句，而在于如果获知想要查询的内容在哪个名称空间以及对应的类和属性。而这些内容则需要查阅官方文档以及使用 wbemtest 进行探索。获得了这些必要的信息后，再去编写 Python 代码就是一件非常轻松的事情。</p>
+<div align="center"><br><img src="/images/wechatPublicAccount.png" alt><br></div>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/Windows/" rel="tag"># Windows</a>
+              <a href="/tags/WMI/" rel="tag"># WMI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/10/20/Python内存数据库-引擎/" rel="prev" title="Python内存数据库/引擎">
+      <i class="fa fa-chevron-left"></i> Python内存数据库/引擎
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/23/Airflow-探究/" rel="next" title="Airflow 探究">
+      Airflow 探究 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是-WMI"><span class="nav-number">1.</span> <span class="nav-text">什么是 WMI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-WMI"><span class="nav-number">2.</span> <span class="nav-text">使用 WMI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-wmi-库操作-WMI"><span class="nav-number">2.1.</span> <span class="nav-text">使用 wmi 库操作 WMI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-win32com-库操作-WMI"><span class="nav-number">2.2.</span> <span class="nav-text">使用 win32com 库操作 WMI</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WMI-的名称空间"><span class="nav-number">3.</span> <span class="nav-text">WMI 的名称空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类-实例和属性-值"><span class="nav-number">4.</span> <span class="nav-text">类/实例和属性/值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实战，以-IIS-为例"><span class="nav-number">5.</span> <span class="nav-text">实战，以 IIS 为例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Prodesire"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Prodesire</p>
+  <div class="site-description" itemprop="description">Prodesire 的博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/prodesire" title="GitHub → https://github.com/prodesire" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/prodesire" title="知乎 → https://www.zhihu.com/people/prodesire" rel="noopener" target="_blank"><i class="zhihu fa-fw"></i>知乎</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://codingcat.top/" title="https://codingcat.top/" rel="noopener" target="_blank">编程猫</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Prodesire</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">200k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:02</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz","app_key":"YcMCWnPYP6XWogWEbRBSNbfI","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz',
+      appKey     : 'YcMCWnPYP6XWogWEbRBSNbfI',
+      placeholder: "把你的想法告诉我吧~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

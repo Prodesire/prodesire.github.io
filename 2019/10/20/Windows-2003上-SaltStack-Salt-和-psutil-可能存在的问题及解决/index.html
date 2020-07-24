@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"prodesire.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="（备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。） 之前把 salt 安装在 windows 2003 上，发现无法启动，随之而来的是一个有一个的坑，让我们一起逐个排查。">
+<meta name="keywords" content="Python,Salt,SaltStack,Windows,DevOps">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows 2003上 SaltStack&#x2F;Salt 和 psutil 可能存在的问题及解决">
+<meta property="og:url" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/index.html">
+<meta property="og:site_name" content="Prodesire">
+<meta property="og:description" content="（备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。） 之前把 salt 安装在 windows 2003 上，发现无法启动，随之而来的是一个有一个的坑，让我们一起逐个排查。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/1.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/2.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/3.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/4.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/5.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/6.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/7.png">
+<meta property="og:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/8.png">
+<meta property="og:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+<meta property="og:updated_time" content="2020-07-24T15:00:04.364Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Windows 2003上 SaltStack&#x2F;Salt 和 psutil 可能存在的问题及解决">
+<meta name="twitter:description" content="（备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。） 之前把 salt 安装在 windows 2003 上，发现无法启动，随之而来的是一个有一个的坑，让我们一起逐个排查。">
+<meta name="twitter:image" content="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/1.png">
+
+<link rel="canonical" href="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Windows 2003上 SaltStack/Salt 和 psutil 可能存在的问题及解决 | Prodesire</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?65299c312c93ea8fc5dd3786947453bf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Prodesire" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Prodesire</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-top">
+
+    <a href="/top" rel="section"><i class="fa fa-signal fa-fw"></i>top</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/prodesire" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://prodesire.cn/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Prodesire">
+      <meta itemprop="description" content="Prodesire 的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Prodesire">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Windows 2003上 SaltStack/Salt 和 psutil 可能存在的问题及解决
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-20 11:57:55" itemprop="dateCreated datePublished" datetime="2019-10-20T11:57:55+08:00">2019-10-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-24 23:00:04" itemprop="dateModified" datetime="2020-07-24T23:00:04+08:00">2020-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/SaltStack/" itemprop="url" rel="index"><span itemprop="name">SaltStack</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/" class="post-meta-item leancloud_visitors" data-flag-title="Windows 2003上 SaltStack/Salt 和 psutil 可能存在的问题及解决" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>（备注：本文是之前在博客园中发表的文章，因为老博客不再维护，把有价值的博文转移到这里。）</p>
+<p>之前把 salt 安装在 windows 2003 上，发现无法启动，随之而来的是一个有一个的坑，让我们一起逐个排查。</p>
+<a id="more"></a>
+<h2 id="问题一（salt-无法启动）"><a href="#问题一（salt-无法启动）" class="headerlink" title="问题一（salt 无法启动）"></a>问题一（salt 无法启动）</h2><p>salt 无法启动，错误结果如图：</p>
+<img src="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/1.png">
+<h3 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h3><p>这种错误完全无厘头呀，本着相信 salt 的原则，我们看看 python 能不能正常启动，由此产生新的问题。</p>
+<h2 id="问题二（python-无法启动）"><a href="#问题二（python-无法启动）" class="headerlink" title="问题二（python 无法启动）"></a>问题二（python 无法启动）</h2><p>启动 C:\salt\bin\python，发现仍旧无法启动。这就奇怪了，我有理由相信这可能是 salt 自带的 python 的问题。那么从 Python 的官网下载个新包 Python2.7.12 看看，安装后发现官网的 Python 启动正常。莫非是初始化了一些环境变量？回过头来再去看 salt 中的 python 能不能用，奇迹般地好了~</p>
+<h3 id="解决-1"><a href="#解决-1" class="headerlink" title="解决"></a>解决</h3><p>重新安装一次官网的 Python，然后再启动 salt 中的 python 试试。</p>
+<p>原因在于，这台 windows 2003 原来装过 python，但可能因为后来卸载不彻底，以及中间各种软件安装影响了一些环境变量，导致 salt 中 python 无法正常启动。</p>
+<h2 id="问题三（缺少-MSCVCR100-dll）"><a href="#问题三（缺少-MSCVCR100-dll）" class="headerlink" title="问题三（缺少 MSCVCR100.dll）"></a>问题三（缺少 MSCVCR100.dll）</h2><p>既然 python 启动问题已经搞定，那就再去启动 salt-minion 吧。这次开启 debug 模式，看看能否正常启动，启动不了也会有详细信息。执行 C:\salt\salt-minion-debug.bat，结果没过多久报了这个错：</p>
+<img src="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/2.png">
+<h3 id="解决-2"><a href="#解决-2" class="headerlink" title="解决"></a>解决</h3><p>既然 windows 2003 这位老先生明确告诉我们缺少了 MSVCR100.dll 这个动态链接库，那就找到它吧。这个库是 vc++2010 里的，所以从微软的官网下载 Microsoft Visual C++ 2010 可再发行组件包 (x86)， 安装完毕后，再启动 salt-minion 就不会报错了。</p>
+<h2 id="问题四（psutil-中-‘from-import-psutil-windows-as-cext’-报错）"><a href="#问题四（psutil-中-‘from-import-psutil-windows-as-cext’-报错）" class="headerlink" title="问题四（psutil 中 ‘from . import _psutil_windows as cext’ 报错）"></a>问题四（psutil 中 ‘from . import _psutil_windows as cext’ 报错）</h2><p>由于项目中用到 psutil，自然想到要检验下 salt 自带的 python 第三方 psutil 能否正常使用，结果很遗憾：</p>
+<img src="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/3.png">
+<p>这是什么鬼？不能导入的原因太模糊了吧，dll 导入失败？！哪个 dll？</p>
+<p>去报错相应的目录下看看吧，也就是 C:\salt\bin\lib\site-packages\psutil\下，发现要导入的_psutil_windows 包其实是_psutil_windows.pyd 这个链接库。导入这个链接库失败，那么就看看这个链接库到底链接了什么东西。</p>
+<p>使用 <a href="http://dependencywalker.com/" target="_blank" rel="noopener">dependency walker</a> 去瞅瞅，发现是这样的问题：</p>
+<img src="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/4.png">
+<h3 id="解决-3"><a href="#解决-3" class="headerlink" title="解决"></a>解决</h3><p>把缺失的这两个 dll（msvcr90.dll, msjava.dll）补上？补上后仍然有问题，看下文。</p>
+<h2 id="问题五（At-least-one-module-has-an-unresolved-import-…）"><a href="#问题五（At-least-one-module-has-an-unresolved-import-…）" class="headerlink" title="问题五（At least one module has an unresolved import …）"></a>问题五（At least one module has an unresolved import …）</h2><p>补上两个 dll 后，还显示一个错误：</p>
+<img src="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/5.png">
+<p>根据图片中的显示，大概是 iphlpapi.dll 和 kernel32.dll 的导入或被导入出现了问题。但是这两个是系统的呀，能奈之何？</p>
+<p>先不管这个错误，尝试运行下 python，然后 import psutil，看看会不会报错：</p>
+<img src="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/6.png">
+<p>看来还是老错误，无法避免。</p>
+<p>会不会是 salt 预装的 psutil 有问题？去 C:\salt\bin\scripts\下，pip uninstall psutil 卸载掉再重装试试，结果还是不行。</p>
+<p>这就非常奇怪，突发奇想该不会是高版本的 psutil 不支持低版本的系统导致的吧？于是再次卸载掉 psutil，装了个 1.x 版本试验了下，结果可以了。</p>
+<h3 id="解决-4"><a href="#解决-4" class="headerlink" title="解决"></a>解决</h3><p>安装一个低版本的 psutil 试试，注意你用到的 psutil 的功能在低版本中可能不存在。</p>
+<h2 id="问题六（salt-模块依赖的-wmi-可以用吗？）"><a href="#问题六（salt-模块依赖的-wmi-可以用吗？）" class="headerlink" title="问题六（salt 模块依赖的 wmi 可以用吗？）"></a>问题六（salt 模块依赖的 wmi 可以用吗？）</h2><p>从 <a href="https://docs.saltstack.com/en/latest/topics/installation/windows.html" target="_blank" rel="noopener">salt 官网</a>上看到关于 windows 2003 这样的描述：</p>
+<img src="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/7.png">
+<p>貌似是 wmi 需要额外安装。</p>
+<p>那就先看看 wmi 能不能正常导入吧：</p>
+<p>很好，wmi 库可以正常导入，项目要用到的 wmic（第一次在 cmd 中输入，会自动安装）也能正常使用，皆大欢喜。</p>
+<img src="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/8.png">
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在低版本的系统上，可能会有各种各样想不到的坑。再次做个记录留作备忘，也给将来可能踩坑的同学借鉴经验。</p>
+<div align="center"><br><img src="/images/wechatPublicAccount.png" alt><br></div>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/Salt/" rel="tag"># Salt</a>
+              <a href="/tags/SaltStack/" rel="tag"># SaltStack</a>
+              <a href="/tags/Windows/" rel="tag"># Windows</a>
+              <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/10/15/Python-命令行之旅：深入-docopt/" rel="prev" title="Python 命令行之旅：深入 docopt">
+      <i class="fa fa-chevron-left"></i> Python 命令行之旅：深入 docopt
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/20/Python内存数据库-引擎/" rel="next" title="Python内存数据库/引擎">
+      Python内存数据库/引擎 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#问题一（salt-无法启动）"><span class="nav-number">1.</span> <span class="nav-text">问题一（salt 无法启动）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解决"><span class="nav-number">1.1.</span> <span class="nav-text">解决</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题二（python-无法启动）"><span class="nav-number">2.</span> <span class="nav-text">问题二（python 无法启动）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解决-1"><span class="nav-number">2.1.</span> <span class="nav-text">解决</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题三（缺少-MSCVCR100-dll）"><span class="nav-number">3.</span> <span class="nav-text">问题三（缺少 MSCVCR100.dll）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解决-2"><span class="nav-number">3.1.</span> <span class="nav-text">解决</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题四（psutil-中-‘from-import-psutil-windows-as-cext’-报错）"><span class="nav-number">4.</span> <span class="nav-text">问题四（psutil 中 ‘from . import _psutil_windows as cext’ 报错）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解决-3"><span class="nav-number">4.1.</span> <span class="nav-text">解决</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题五（At-least-one-module-has-an-unresolved-import-…）"><span class="nav-number">5.</span> <span class="nav-text">问题五（At least one module has an unresolved import …）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解决-4"><span class="nav-number">5.1.</span> <span class="nav-text">解决</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题六（salt-模块依赖的-wmi-可以用吗？）"><span class="nav-number">6.</span> <span class="nav-text">问题六（salt 模块依赖的 wmi 可以用吗？）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Prodesire"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Prodesire</p>
+  <div class="site-description" itemprop="description">Prodesire 的博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/prodesire" title="GitHub → https://github.com/prodesire" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/prodesire" title="知乎 → https://www.zhihu.com/people/prodesire" rel="noopener" target="_blank"><i class="zhihu fa-fw"></i>知乎</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://codingcat.top/" title="https://codingcat.top/" rel="noopener" target="_blank">编程猫</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Prodesire</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">200k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:02</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz","app_key":"YcMCWnPYP6XWogWEbRBSNbfI","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz',
+      appKey     : 'YcMCWnPYP6XWogWEbRBSNbfI',
+      placeholder: "把你的想法告诉我吧~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

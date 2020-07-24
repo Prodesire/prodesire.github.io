@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"prodesire.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文首发于 凌云时刻公众号。 当你想实现一个命令行程序时，或许第一个想到的是用 Python 来实现。比如 CentOS 上大名鼎鼎的包管理工具 yum 就是基于 Python 实现的。 而 Python 的世界中有很多命令行库，每个库都各具特色。但我们往往不知道其背后的设计理念，也因此在选择时感到迷茫。这些库的作者为何在重复造轮子，他是从哪个角度来考虑，来让命令行库“演变”到一个新的更好用的形态">
+<meta name="keywords" content="Python,命令行,argparse,click,docopt,fire,typer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 命令行大乱斗">
+<meta property="og:url" content="http://prodesire.cn/2020/07/02/Python-命令行大乱斗/index.html">
+<meta property="og:site_name" content="Prodesire">
+<meta property="og:description" content="本文首发于 凌云时刻公众号。 当你想实现一个命令行程序时，或许第一个想到的是用 Python 来实现。比如 CentOS 上大名鼎鼎的包管理工具 yum 就是基于 Python 实现的。 而 Python 的世界中有很多命令行库，每个库都各具特色。但我们往往不知道其背后的设计理念，也因此在选择时感到迷茫。这些库的作者为何在重复造轮子，他是从哪个角度来考虑，来让命令行库“演变”到一个新的更好用的形态">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+<meta property="og:updated_time" content="2020-07-24T15:00:04.360Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python 命令行大乱斗">
+<meta name="twitter:description" content="本文首发于 凌云时刻公众号。 当你想实现一个命令行程序时，或许第一个想到的是用 Python 来实现。比如 CentOS 上大名鼎鼎的包管理工具 yum 就是基于 Python 实现的。 而 Python 的世界中有很多命令行库，每个库都各具特色。但我们往往不知道其背后的设计理念，也因此在选择时感到迷茫。这些库的作者为何在重复造轮子，他是从哪个角度来考虑，来让命令行库“演变”到一个新的更好用的形态">
+<meta name="twitter:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+
+<link rel="canonical" href="http://prodesire.cn/2020/07/02/Python-命令行大乱斗/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Python 命令行大乱斗 | Prodesire</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?65299c312c93ea8fc5dd3786947453bf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Prodesire" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Prodesire</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-top">
+
+    <a href="/top" rel="section"><i class="fa fa-signal fa-fw"></i>top</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/prodesire" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://prodesire.cn/2020/07/02/Python-命令行大乱斗/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Prodesire">
+      <meta itemprop="description" content="Prodesire 的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Prodesire">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python 命令行大乱斗
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-02 00:01:11" itemprop="dateCreated datePublished" datetime="2020-07-02T00:01:11+08:00">2020-07-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-24 23:00:04" itemprop="dateModified" datetime="2020-07-24T23:00:04+08:00">2020-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/命令行/" itemprop="url" rel="index"><span itemprop="name">命令行</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/07/02/Python-命令行大乱斗/" class="post-meta-item leancloud_visitors" data-flag-title="Python 命令行大乱斗" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/07/02/Python-命令行大乱斗/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/07/02/Python-命令行大乱斗/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文首发于 <a href="https://mp.weixin.qq.com/s/szn0qm8_u6GTbVoW9GBP3Q" target="_blank" rel="noopener">凌云时刻公众号</a>。</p>
+<p>当你想实现一个命令行程序时，或许第一个想到的是用 Python 来实现。比如 CentOS 上大名鼎鼎的包管理工具 <code>yum</code> 就是基于 Python 实现的。</p>
+<p>而 Python 的世界中有很多命令行库，每个库都各具特色。但我们往往不知道其背后的设计理念，也因此在选择时感到迷茫。这些库的作者为何在重复造轮子，他是从哪个角度来考虑，来让命令行库“演变”到一个新的更好用的形态。</p>
+<p>为了能够更加直观地感受到命令行库的设计理念，在此之前，我们不妨设计一个名为 <code>calc</code> 的命令行程序，它能：</p>
+<ul>
+<li>支持 <code>echo</code> 子命令，对输入的字符串做处理来输出<ul>
+<li>若不提供任何选项，则输出原始内容</li>
+<li>若提供 <code>--lower</code> 选项，则输出小写字符串</li>
+<li>若提供 <code>--upper</code> 选项，则输出大写字符串</li>
+</ul>
+</li>
+<li>支持 <code>eval</code> 子命令，针对输入调用 Python 的 <code>eval</code> 函数，将结果输出（作为示例，我们不考虑安全性问题）</li>
+</ul>
+<a id="more"></a>
+<h2 id="argparse"><a href="#argparse" class="headerlink" title="argparse"></a>argparse</h2><p><a href="https://docs.python.org/3/library/argparse.html" target="_blank" rel="noopener">argparse</a> 作为 Python 的标准库，可能会是你想到第一个命令行库。</p>
+<p><code>argparse</code> 的设计理念就是提供给开发者最细粒度的控制。换句话说，你需要告诉它必不可少的细节，比如参数的类型是什么，处理参数的动作是怎样的。</p>
+<p>在 <code>argparse</code> 的世界中，需要：</p>
+<ul>
+<li>设置解析器，作为后续定义参数和解析命令行的基础。如果要实现子命令，则还要设置子解析器。</li>
+<li>定义参数，包括名称、类型、动作、帮助等。其中的动作是指对于此参数的初步处理，是直接存下来，还是作为布尔值，亦或是追加到列表中等等</li>
+<li>解析参数</li>
+<li>根据参数编写业务逻辑</li>
+</ul>
+<p>以下示例是基于 <code>argparse</code> 的 <code>calc</code> 程序：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">echo_text</span><span class="params">(args)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> args.lower:</span><br><span class="line">        print(args.text.lower())</span><br><span class="line">    <span class="keyword">elif</span> args.upper:</span><br><span class="line">        print(args.text.upper())</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        print(args.text)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">eval_expression</span><span class="params">(args)</span>:</span></span><br><span class="line">    print(eval(args.expression))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 设置解析器</span></span><br><span class="line">parser = argparse.ArgumentParser(description=<span class="string">'Calculator Program.'</span>)</span><br><span class="line">subparsers = parser.add_subparsers()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 定义参数</span></span><br><span class="line"><span class="comment"># 2.1 echo 子命令</span></span><br><span class="line"><span class="comment"># echo 子解析器</span></span><br><span class="line">echo_parser = subparsers.add_parser(</span><br><span class="line">    <span class="string">'echo'</span>, help=<span class="string">'Echo input text in multiple forms'</span>)</span><br><span class="line"><span class="comment"># 添加位置参数 text</span></span><br><span class="line">echo_parser.add_argument(<span class="string">'text'</span>, help=<span class="string">'Input text'</span>)</span><br><span class="line"><span class="comment"># --lower/--upper 互斥，需要设置互斥组</span></span><br><span class="line">echo_group = echo_parser.add_mutually_exclusive_group()</span><br><span class="line"><span class="comment"># 添加选项参数 --lower/--upper，这里action的作用就是将之变为布尔变量</span></span><br><span class="line">echo_parser.add_argument(<span class="string">'--lower'</span>, action=<span class="string">'store_true'</span>, help=<span class="string">'Lower input text'</span>)</span><br><span class="line">echo_parser.add_argument(<span class="string">'--upper'</span>, action=<span class="string">'store_true'</span>, help=<span class="string">'Upper input text'</span>)</span><br><span class="line"><span class="comment"># 设置此命令的处理函数</span></span><br><span class="line">echo_parser.set_defaults(handle=echo_text)</span><br><span class="line"></span><br><span class="line"><span class="comment"># eval 子解析器</span></span><br><span class="line">eval_parser = subparsers.add_parser(</span><br><span class="line">    <span class="string">'eval'</span>, help=<span class="string">'Eval input expression and return result'</span>)</span><br><span class="line"><span class="comment"># 添加位置参数 expression</span></span><br><span class="line">eval_parser.add_argument(<span class="string">'expression'</span>, help=<span class="string">'Expression to eval'</span>)</span><br><span class="line"><span class="comment"># 设置此命令的处理函数</span></span><br><span class="line">eval_parser.set_defaults(handle=eval_expression)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 解析参数</span></span><br><span class="line">args = parser.parse_args([<span class="string">'echo'</span>, <span class="string">'--upper'</span>, <span class="string">'Hello, World'</span>])</span><br><span class="line">print(args)  <span class="comment"># 结果：Namespace(lower=True, text='Hello, World', upper=False)</span></span><br><span class="line"><span class="comment"># args = parser.parse_args(['eval', '1+2*3'])</span></span><br><span class="line"><span class="comment"># print(args)  # 结果：Namespace(expression='1+2*3')</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 业务逻辑处理</span></span><br><span class="line">args.handle(args)</span><br></pre></td></tr></table></figure>
+<p>从上述示例可以看到，要实现子命令，对应地需要添加子解析器。然后最为关键的就是要定义参数，需要通过 <code>add_argument</code> 很明确地告诉 <code>argparse</code> 参数长什么样，需要怎么处理：</p>
+<ul>
+<li>它是位置参数 <code>text</code>/<code>expression</code>，还是选项参数 <code>--lower</code>/<code>--upper</code></li>
+<li>若是选项参数，是否互斥</li>
+<li>参数的是存成什么形式，比如 <code>action=&#39;store_true&#39;</code> 表示存成布尔</li>
+<li>子命令的响应函数</li>
+</ul>
+<p>通过 <code>argparse</code> 实现的整个过程是很计算机思维的，且比较冗长。其优点是灵活，所有的功能都涵盖到了；但缺点则是将定义和处理割裂，尤其在程序功能复杂时会愈加凌乱和不直观，难以理解和维护。</p>
+<h2 id="docopt"><a href="#docopt" class="headerlink" title="docopt"></a>docopt</h2><p>有人喜欢 <code>argparse</code> 这样命令式的写法，就会有人喜欢声明式的写法。而 <a href="http://docopt.org/" target="_blank" rel="noopener">docopt</a> 恰巧这就是这样一个命令行库。设计它的初衷就是对于熟悉命令行程序帮助信息的开发者来说，直接通过编写帮助信息来描述整个命令行参数定义的元信息会是更加简单快捷的方式。这种声明式的语法描述某种程度上会比过程式地定义参数来的更加简单和直观。</p>
+<p>在 <code>docopt</code> 的世界中，需要：</p>
+<ul>
+<li>定义接口描述/帮助信息，这一步是它的特色和重点</li>
+<li>解析参数，获得一个字典</li>
+<li>根据参数编写业务逻辑</li>
+</ul>
+<p>以下示例是基于 <code>docopt</code> 的 <code>calc</code> 程序：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 定义接口描述/帮助信息</span></span><br><span class="line"><span class="string">"""Calculator Program.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Usage:</span></span><br><span class="line"><span class="string">  calc echo [--lower | --upper] &lt;text&gt;</span></span><br><span class="line"><span class="string">  calc eval &lt;expression&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Commands:</span></span><br><span class="line"><span class="string">  echo          Echo input text in multiple forms</span></span><br><span class="line"><span class="string">  eval          Eval input expression and return result</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Options:</span></span><br><span class="line"><span class="string">  -h --help     Show help</span></span><br><span class="line"><span class="string">  --lower       Lower input text</span></span><br><span class="line"><span class="string">  --upper       Upper input text</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="keyword">from</span> docopt <span class="keyword">import</span> docopt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">echo_text</span><span class="params">(args)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> args[<span class="string">'--lower'</span>]:</span><br><span class="line">        print(args[<span class="string">'&lt;text&gt;'</span>].lower())</span><br><span class="line">    <span class="keyword">elif</span> args[<span class="string">'--upper'</span>]:</span><br><span class="line">        print(args[<span class="string">'&lt;text&gt;'</span>].upper())</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        print(args[<span class="string">'&lt;text&gt;'</span>])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">eval_expression</span><span class="params">(args)</span>:</span></span><br><span class="line">    print(eval(args[<span class="string">'&lt;expression&gt;'</span>]))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 解析命令行</span></span><br><span class="line">args = docopt(__doc__, argv=[<span class="string">'echo'</span>, <span class="string">'--upper'</span>, <span class="string">'Hello, World'</span>])</span><br><span class="line"><span class="comment"># 结果：&#123;'--lower': False, '--upper': True, '&lt;expression&gt;': None, '&lt;text&gt;': 'Hello, World', 'echo': True, 'eval': False&#125;</span></span><br><span class="line">print(args)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 业务逻辑</span></span><br><span class="line"><span class="keyword">if</span> args[<span class="string">'echo'</span>]:</span><br><span class="line">    echo_text(args)</span><br><span class="line"><span class="keyword">elif</span> args[<span class="string">'eval'</span>]:</span><br><span class="line">    eval_expression(args)</span><br></pre></td></tr></table></figure>
+<p>从上述示例可以看到，我们通过文档字符串 <code>__doc__</code> 定义了接口描述，这和 <code>argparse</code> 中 一系列参数定义的行为是等价的，然后 <code>docopt</code> 便会根据这个元信息把命令行参数转换为一个字典。业务逻辑中就需要对这个字典进行处理。</p>
+<p>相比于 <code>argparse</code>：</p>
+<ul>
+<li>对于较为复杂的命令，命令和参数元信息的定义上 <code>docopt</code> 会更加简单</li>
+<li>在业务逻辑的处理上，<code>argparse</code> 在一些简单参数的处理上会更加便捷，且命令和处理函数之间可以方便路由（比如示例中的情形）；相对来说 <code>docopt</code> 转换为字典后就把所有处理交给业务逻辑的方式会更加复杂</li>
+</ul>
+<h2 id="click"><a href="#click" class="headerlink" title="click"></a>click</h2><p>不论是 <code>argparse</code> 还是 <code>docopt</code>，元信息的定义和处理都是割裂开的。而命令行程序本质上是定义参数并对参数进行处理，而处理参数的逻辑一定是与所定义的参数有关联的。那可不可以用函数和装饰器来实现处理参数逻辑与定义参数的关联呢？<a href="https://click.palletsprojects.com/en/7.x/" target="_blank" rel="noopener">click</a> 正好就是以这种使用方式来设计的。</p>
+<p>装饰器这样一个优雅的语法糖是元信息定义和处理逻辑之间的绝妙胶水，从而暗示了两者的路有关系。对比于前两个命令行库的路由实现着实优雅了不少。</p>
+<p>在 <code>click</code> 的世界中：</p>
+<ul>
+<li>通过装饰器定义命令和参数的元信息</li>
+<li>使用此装饰器装饰处理函数</li>
+</ul>
+<p>对，就是这么简单。</p>
+<p>以下示例是基于 <code>click</code> 的 <code>calc</code> 程序：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> click</span><br><span class="line"></span><br><span class="line">sys.argv = [<span class="string">'calc'</span>, <span class="string">'echo'</span>, <span class="string">'--upper'</span>, <span class="string">'Hello, World'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@click.group(help='Calculator Program.')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cli</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 定义参数</span></span><br><span class="line"><span class="meta">@cli.command(name='echo', help='Echo input text in multiple forms')</span></span><br><span class="line"><span class="meta">@click.argument('text')</span></span><br><span class="line"><span class="meta">@click.option('--lower', is_flag=True, help='Lower input text')</span></span><br><span class="line"><span class="meta">@click.option('--upper', is_flag=True, help='Upper input text')</span></span><br><span class="line"><span class="comment"># 1. 业务逻辑</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">echo_text</span><span class="params">(text, lower, upper)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> lower:</span><br><span class="line">        print(text.lower())</span><br><span class="line">    <span class="keyword">elif</span> upper:</span><br><span class="line">        print(text.upper())</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        print(text)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@cli.command(name='eval', help='Eval input expression and return result')</span></span><br><span class="line"><span class="meta">@click.argument('expression')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">eval_expression</span><span class="params">(expression)</span>:</span></span><br><span class="line">    print(eval(expression))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">cli()</span><br></pre></td></tr></table></figure>
+<p>从上述示例可以看到，元信息定义和处理逻辑无缝绑定在一起，能够直观地看出对应的参数会如何处理，这个优势在有大量参数需要处理时显得尤为突出。在处理函数中，接收到不再是像 <code>argparse</code> 或 <code>docopt</code> 中的一个包含所有参数的变量，而是具体的参数变量，这让处理逻辑在参数使用上也变得更加简便。</p>
+<p>此外，<code>click</code> 还内置了很多实用工具和增强能力，如参数自动补全、分页支持、颜色、进度条等功能，能够有效提升开发效率。</p>
+<h2 id="fire"><a href="#fire" class="headerlink" title="fire"></a>fire</h2><p>虽然前面三个库已经足够强大，但是仍然会有人认为不够简单。是否还有进一步简化的空间呢？如果只是定义函数，是否能让框架推测出参数元信息呢？理论上还真是可以。</p>
+<p><a href="https://github.com/google/python-fire" target="_blank" rel="noopener">fire</a> 用一种面向广义对象的方式来玩转命令行，这种对象可以是类、函数、字典、列表等，它更加灵活，也更加简单。你都不需要定义参数类型，<code>fire</code> 会根据输入和参数默认值来自动判断，这无疑进一步简化了实现过程。</p>
+<p>在 <code>fire</code> 的世界中，定义 Python 对象就够了。</p>
+<p>以下示例是基于 <code>fire</code> 的 <code>calc</code> 程序：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> fire</span><br><span class="line"></span><br><span class="line">sys.argv = [<span class="string">'calc'</span>, <span class="string">'echo'</span>, <span class="string">'"Hello, World"'</span>, <span class="string">'--upper'</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 业务逻辑</span></span><br><span class="line"><span class="comment"># 类中有几个方法，就意味着命令行程序有几个同名命令</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Calc</span>:</span></span><br><span class="line">    <span class="comment"># text 没有任何默认值，视为位置参数</span></span><br><span class="line">    <span class="comment"># lower/upper 有布尔类型的默认值，视为选项参数 --lower/--upper，</span></span><br><span class="line">    <span class="comment"># 且指定了为 True，不指定 False</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">echo</span><span class="params">(self, text, lower=False, upper=False)</span>:</span></span><br><span class="line">        <span class="string">"""Echo input text in multiple forms"""</span></span><br><span class="line">        <span class="keyword">if</span> lower:</span><br><span class="line">            print(text.lower())</span><br><span class="line">        <span class="keyword">elif</span> upper:</span><br><span class="line">            print(text.upper())</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            print(text)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">eval</span><span class="params">(self, expression)</span>:</span></span><br><span class="line">        <span class="string">"""Eval input expression and return result"""</span></span><br><span class="line">        print(eval(expression))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">fire.Fire(Calc)</span><br></pre></td></tr></table></figure>
+<p>从上面的示例可以看出，使用 <code>fire</code> 足够的简单，一切都是根据约定来进行推断，包括支持哪些命令，每个命令接受的什么参数和选项。这种方式可以说是足够的 Pythonic，相比于 <code>click</code>，<code>fire</code> 把命令行参数的定义和函数参数的定义融为了一体。通过它，我们真的就只用关注业务逻辑。</p>
+<p>不过简单往往也意味着对于复杂需求的捉襟见肘。仅仅通过默认值来推导命令行参数所能表达的情况是有限的，比如互斥选项、位置参数的类型限定都无法通过框架来表达，而只能由业务逻辑去判断。</p>
+<h2 id="typer"><a href="#typer" class="headerlink" title="typer"></a>typer</h2><p>那么该如何在保持像 <code>fire</code> 这样简单实现的方式下，增强参数元信息的表达能力呢？既然默认参数的能力有限，那么如果使用 Python 3 的类型注解呢？</p>
+<p><a href="https://typer.tiangolo.com/" target="_blank" rel="noopener">typer</a> 站在 <code>click</code> 巨人的肩膀上，借助 Python 3 类型注解的特性，既满足了简单直观编写的需要，又达到了应对复杂场景的目的，可谓是现代化的命令行库。</p>
+<p>在 <code>typer</code> 的世界中，也是直接编写业务逻辑，和 <code>fire</code> 稍稍不同的点是使用了类型注解和默认值来表达参数元信息定义。</p>
+<p>以下示例是基于 <code>typer</code> 的 <code>calc</code> 程序：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> typer</span><br><span class="line"></span><br><span class="line">sys.argv = [<span class="string">'calc'</span>, <span class="string">'echo'</span>, <span class="string">'"Hello, World"'</span>, <span class="string">'--upper'</span>]</span><br><span class="line">cli = typer.Typer(help=<span class="string">'Calculator Program.'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义命令 echo，及处理函数</span></span><br><span class="line"><span class="comment"># text 无默认值，视为位置参数，类型为字符串</span></span><br><span class="line"><span class="comment"># lower/upper 类型为 bool，默认值为 False，视为选项 --lower/--upper，</span></span><br><span class="line"><span class="comment"># 且指定了为 True，不指定 False</span></span><br><span class="line"><span class="meta">@cli.command(name='echo')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">echo_text</span><span class="params">(text: str, lower: bool = False, upper: bool = False)</span>:</span></span><br><span class="line">    <span class="string">"""Echo input text in multiple forms"""</span></span><br><span class="line">    <span class="keyword">if</span> lower:</span><br><span class="line">        print(text.lower())</span><br><span class="line">    <span class="keyword">elif</span> upper:</span><br><span class="line">        print(text.upper())</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        print(text)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义命令 eval，及处理函数</span></span><br><span class="line"><span class="comment"># expression 无默认值，视为位置参数，类型为字符串</span></span><br><span class="line"><span class="meta">@cli.command(name='eval')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">eval_expression</span><span class="params">(expression: str)</span>:</span></span><br><span class="line">    <span class="string">"""Eval input expression and return result"""</span></span><br><span class="line">    print(eval(expression))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">cli()</span><br></pre></td></tr></table></figure>
+<p>从上面的示例可以看出，相比于 <code>click</code>，它免去了参数元信息的繁琐定义，取而代之的是类型注解；相比于 <code>fire</code>，它的元信息定义能力则大大增强，可以通过指定默认值为 <code>typer.Option</code> 或 <code>typer.Argument</code> 来进一步扩展参数和选项的语义。可以说是，<code>typer</code> 达到了简单与灵活的完美平衡。</p>
+<h2 id="横向对比"><a href="#横向对比" class="headerlink" title="横向对比"></a>横向对比</h2><p>最后，我们横向对比下 <code>argparse</code>、<code>docopt</code>、<code>click</code>、<code>fire</code>、<code>typer</code> 库的各项功能和特点：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:left">argpase</th>
+<th style="text-align:left">docopt</th>
+<th style="text-align:left">click</th>
+<th style="text-align:left">fire</th>
+<th style="text-align:left">typer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>使用步骤数</td>
+<td style="text-align:left">4 步</td>
+<td style="text-align:left">3 步</td>
+<td style="text-align:left">2 步</td>
+<td style="text-align:left">1 步</td>
+<td style="text-align:left">1 步</td>
+</tr>
+<tr>
+<td>使用步骤数</td>
+<td style="text-align:left">1. 设置解析器<br>2. 定义参数<br>3. 解析命令行<br>4. 业务逻辑</td>
+<td style="text-align:left">1. 定义接口描述<br>2. 解析命令行<br>3. 业务逻辑</td>
+<td style="text-align:left">1. 业务逻辑<br>2. 定义参数</td>
+<td style="text-align:left">1. 业务逻辑</td>
+<td style="text-align:left">1 . 业务逻辑</td>
+</tr>
+<tr>
+<td>选项参数<br>（如 <code>--sum</code>）</td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+</tr>
+<tr>
+<td>位置参数<br>（如 <code>X Y</code>）</td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+</tr>
+<tr>
+<td>参数默认值<br></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+</tr>
+<tr>
+<td>互斥选项<br>（如 <code>--car</code> 和 <code>--bus</code> 只能二选一）</td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="yellow">✔</font><br>可通过第三方库支持</td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+</tr>
+<tr>
+<td>可变参数<br>（如指定多个 <code>--file</code>）</td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+</tr>
+<tr>
+<td>嵌套/父子命令<br></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+</tr>
+<tr>
+<td>工具箱<br></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+</tr>
+<tr>
+<td>链式命令调用<br></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+</tr>
+<tr>
+<td>类型约束</td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+<td style="text-align:left"><font color="red">✘</font></td>
+<td style="text-align:left"><font color="green">✔</font></td>
+</tr>
+</tbody>
+</table>
+<p>Python 的命令行库种类繁多、各具特色，它们并非是重复造轮子的产物，其背后的思想值得学习。结合横向对比的总结，可以选择出符合使用场景的库。如果几个库都符合，那么就选择你所偏爱的风格。</p>
+<h2 id="相关文章"><a href="#相关文章" class="headerlink" title="相关文章"></a>相关文章</h2><ul>
+<li><a href="/2019/08/13/Python-命令行之旅：初探-argparse/" title="Python 命令行之旅：初探 argparse">Python 命令行之旅：初探 argparse</a></li>
+<li><a href="/2019/08/20/Python-命令行之旅：深入-argparse（一）/" title="Python 命令行之旅：深入 argparse（一）">Python 命令行之旅：深入 argparse（一）</a></li>
+<li><a href="/2019/08/27/Python-命令行之旅：深入-argparse（二）/" title="Python 命令行之旅：深入 argparse（二）">Python 命令行之旅：深入 argparse（二）</a></li>
+<li><a href="/2019/09/04/Python-命令行之旅：使用-argparse-实现-git-命令/" title="Python 命令行之旅：使用 argparse 实现 git 命令">Python 命令行之旅：使用 argparse 实现 git 命令</a></li>
+<li><a href="/2019/10/09/Python-命令行之旅：初探-docopt/" title="Python 命令行之旅：初探 docopt">Python 命令行之旅：初探 docopt</a></li>
+<li><a href="/2019/10/15/Python-命令行之旅：深入-docopt/" title="Python 命令行之旅：深入 docopt">Python 命令行之旅：深入 docopt</a></li>
+<li><a href="/2019/10/30/Python-命令行之旅：使用-docopt-实现-git-命令/" title="Python 命令行之旅：使用 docopt 实现 git 命令">Python 命令行之旅：使用 docopt 实现 git 命令</a></li>
+<li><a href="/2019/11/04/Python-命令行之旅：初探-click/" title="Python 命令行之旅：初探 click">Python 命令行之旅：初探 click</a></li>
+<li><a href="/2019/11/11/Python-命令行之旅：深入-click（一）/" title="Python 命令行之旅：深入 click（一）">Python 命令行之旅：深入 click（一）</a></li>
+<li><a href="/2019/11/17/Python-命令行之旅：深入-click（二）/" title="Python 命令行之旅：深入 click（二）">Python 命令行之旅：深入 click（二）</a></li>
+<li><a href="/2019/11/25/Python-命令行之旅：深入-click（三）/" title="Python 命令行之旅：深入 click（三）">Python 命令行之旅：深入 click（三）</a></li>
+<li><a href="/2019/12/09/Python-命令行之旅：深入-click（四）/" title="Python 命令行之旅：深入 click（四）">Python 命令行之旅：深入 click（四）</a></li>
+<li><a href="/2019/12/14/Python-命令行之旅：使用-click-实现-git-命令/" title="Python 命令行之旅：使用 click 实现 git 命令">Python 命令行之旅：使用 click 实现 git 命令</a></li>
+<li><a href="/2019/12/22/Python-命令行之旅：初探-fire/" title="Python 命令行之旅：初探 fire">Python 命令行之旅：初探 fire</a></li>
+<li><a href="/2019/12/29/Python-命令行之旅：深入-fire（一）/" title="Python 命令行之旅：深入 fire（一）">Python 命令行之旅：深入 fire（一）</a></li>
+<li><a href="/2020/01/05/Python-命令行之旅：深入-fire（二）/" title="Python 命令行之旅：深入 fire（二）">Python 命令行之旅：深入 fire（二）</a></li>
+<li><a href="/2020/01/12/Python-命令行之旅：使用-fire-实现-git-命令/" title="Python 命令行之旅：使用 fire 实现 git 命令">Python 命令行之旅：使用 fire 实现 git 命令</a></li>
+<li><a href="/2020/02/09/Python-命令行之旅：argparse、docopt、click-和-fire-总结篇/" title="Python 命令行之旅：argparse、docopt、click 和 fire 总结篇">Python 命令行之旅：argparse、docopt、click 和 fire 总结篇</a></li>
+<li><a href="/2020/07/02/Python-命令行大乱斗/" title="Python 命令行大乱斗">Python 命令行大乱斗</a>
+</li>
+</ul>
+<div align="center"><br><img src="/images/wechatPublicAccount.png" alt><br></div>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/命令行/" rel="tag"># 命令行</a>
+              <a href="/tags/argparse/" rel="tag"># argparse</a>
+              <a href="/tags/click/" rel="tag"># click</a>
+              <a href="/tags/docopt/" rel="tag"># docopt</a>
+              <a href="/tags/fire/" rel="tag"># fire</a>
+              <a href="/tags/typer/" rel="tag"># typer</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/04/限流后，你可以通过指数补偿来重试/" rel="prev" title="限流后，你可以通过指数退避来重试">
+      <i class="fa fa-chevron-left"></i> 限流后，你可以通过指数退避来重试
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#argparse"><span class="nav-number">1.</span> <span class="nav-text">argparse</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#docopt"><span class="nav-number">2.</span> <span class="nav-text">docopt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#click"><span class="nav-number">3.</span> <span class="nav-text">click</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fire"><span class="nav-number">4.</span> <span class="nav-text">fire</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#typer"><span class="nav-number">5.</span> <span class="nav-text">typer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#横向对比"><span class="nav-number">6.</span> <span class="nav-text">横向对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关文章"><span class="nav-number">7.</span> <span class="nav-text">相关文章</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Prodesire"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Prodesire</p>
+  <div class="site-description" itemprop="description">Prodesire 的博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/prodesire" title="GitHub → https://github.com/prodesire" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/prodesire" title="知乎 → https://www.zhihu.com/people/prodesire" rel="noopener" target="_blank"><i class="zhihu fa-fw"></i>知乎</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://codingcat.top/" title="https://codingcat.top/" rel="noopener" target="_blank">编程猫</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Prodesire</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">200k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:02</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz","app_key":"YcMCWnPYP6XWogWEbRBSNbfI","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz',
+      appKey     : 'YcMCWnPYP6XWogWEbRBSNbfI',
+      placeholder: "把你的想法告诉我吧~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

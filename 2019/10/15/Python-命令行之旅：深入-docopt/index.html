@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"prodesire.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言在第一篇“初探 docopt”的文章中，我们初步掌握了使用 docopt 的三个步骤，了解了它不同于 argparse 的设计思路。那么 docopt 的使用模式都有哪些呢？其接口描述中都支持哪些语法规则呢？本文将带你深入了解 docopt。">
+<meta name="keywords" content="Python,命令行,docopt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 命令行之旅：深入 docopt">
+<meta property="og:url" content="http://prodesire.cn/2019/10/15/Python-命令行之旅：深入-docopt/index.html">
+<meta property="og:site_name" content="Prodesire">
+<meta property="og:description" content="前言在第一篇“初探 docopt”的文章中，我们初步掌握了使用 docopt 的三个步骤，了解了它不同于 argparse 的设计思路。那么 docopt 的使用模式都有哪些呢？其接口描述中都支持哪些语法规则呢？本文将带你深入了解 docopt。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+<meta property="og:updated_time" content="2020-07-24T15:00:04.360Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python 命令行之旅：深入 docopt">
+<meta name="twitter:description" content="前言在第一篇“初探 docopt”的文章中，我们初步掌握了使用 docopt 的三个步骤，了解了它不同于 argparse 的设计思路。那么 docopt 的使用模式都有哪些呢？其接口描述中都支持哪些语法规则呢？本文将带你深入了解 docopt。">
+<meta name="twitter:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+
+<link rel="canonical" href="http://prodesire.cn/2019/10/15/Python-命令行之旅：深入-docopt/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Python 命令行之旅：深入 docopt | Prodesire</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?65299c312c93ea8fc5dd3786947453bf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Prodesire" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Prodesire</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-top">
+
+    <a href="/top" rel="section"><i class="fa fa-signal fa-fw"></i>top</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/prodesire" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://prodesire.cn/2019/10/15/Python-命令行之旅：深入-docopt/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Prodesire">
+      <meta itemprop="description" content="Prodesire 的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Prodesire">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python 命令行之旅：深入 docopt
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-15 23:22:53" itemprop="dateCreated datePublished" datetime="2019-10-15T23:22:53+08:00">2019-10-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-24 23:00:04" itemprop="dateModified" datetime="2020-07-24T23:00:04+08:00">2020-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/命令行/" itemprop="url" rel="index"><span itemprop="name">命令行</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/10/15/Python-命令行之旅：深入-docopt/" class="post-meta-item leancloud_visitors" data-flag-title="Python 命令行之旅：深入 docopt" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/10/15/Python-命令行之旅：深入-docopt/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/10/15/Python-命令行之旅：深入-docopt/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在第一篇“初探 docopt”的文章中，我们初步掌握了使用 <code>docopt</code> 的三个步骤，了解了它不同于 <code>argparse</code> 的设计思路。<br>那么 <code>docopt</code> 的使用模式都有哪些呢？其接口描述中都支持哪些语法规则呢？本文将带你深入了解 <code>docopt</code>。</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">本系列文章默认使用 Python 3 作为解释器进行讲解。</span><br><span class="line">若你仍在使用 Python 2，请注意两者之间语法和库的使用差异哦~</span><br></pre></td></tr></table></figure>
+<h2 id="使用模式"><a href="#使用模式" class="headerlink" title="使用模式"></a>使用模式</h2><p>在上一篇文章中我们提到 <code>docopt</code> 是通过定义一个包含特定内容的字符串，也就是接口描述，来达到描述命令行功能的目的。<br>那么接口描述的总体规则是这样的：</p>
+<ul>
+<li>位于关键字 <code>usage:</code> （大小写不敏感）和一个可见的空行之间的文本内容会被解释为一个个使用模式。</li>
+<li><code>useage:</code> 后的第一个词会被解释为程序的名称，比如下面就是一个没有命令行参数的示例程序：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: cli</span><br></pre></td></tr></table></figure>
+<ul>
+<li>接口描述中可以包含很多有各种元素的模式，以描述命令行用法，比如：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  cli command --option &lt;argument&gt;</span><br><span class="line">  cli [&lt;optional-argument&gt;]</span><br><span class="line">  cli --another-option=&lt;with-argument&gt;</span><br><span class="line">  cli (--either-that-option | &lt;or-this-argument&gt;)</span><br><span class="line">  cli &lt;repeating-argument&gt; &lt;repeating-argument&gt;...</span><br></pre></td></tr></table></figure>
+<h3 id="位置参数："><a href="#位置参数：" class="headerlink" title="位置参数： "></a>位置参数： <argument></argument></h3><p>使用 <code>&lt;</code> 和 <code>&gt;</code> 包裹的参数会被解释为位置参数。</p>
+<p>比如，我们可以指定两个位置参数 <code>x</code> 和 <code>y</code> ，先添加的 <code>x</code> 位于第一个位置，后加入的 <code>y</code> 位于第二个位置。那么在命令行中输入 <code>1 2</code>的时候，分别对应到的就是 <code>x</code> 和 <code>y</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">Usage: cli &lt;x&gt; &lt;y&gt;</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="keyword">from</span> docopt <span class="keyword">import</span> docopt</span><br><span class="line"></span><br><span class="line">arguments = docopt(__doc__, argv=[<span class="string">'1'</span>, <span class="string">'2'</span>])</span><br><span class="line">print(arguments)</span><br></pre></td></tr></table></figure>
+<p>其输出为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">'&lt;x&gt;'</span>: <span class="string">'1'</span>,</span><br><span class="line"> <span class="string">'&lt;y&gt;'</span>: <span class="string">'2'</span>&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="选项参数：-o-–option"><a href="#选项参数：-o-–option" class="headerlink" title="选项参数： -o –option"></a>选项参数： -o –option</h3><p>以单个破折号（<code>-</code>）开头的的参数为短选项，以双破折号（<code>--</code>）开头的参数为长选项。</p>
+<ul>
+<li>短选项支持集中表达多个短选项，比如 <code>-abc</code> 等价于 <code>-a</code>、<code>-b</code> 和 <code>-c</code></li>
+<li>长选项后可跟参数，通过 <code>空格</code> 或 <code>=</code> 指定，比如 <code>--input ARG</code> 等价于 <code>--input=ARG</code></li>
+<li>短选项后可跟参数，通可选的 <code>空格</code> 指定，比如 <code>-f FILE</code> 等价于 <code>-fFILE</code></li>
+</ul>
+<p>在下面这个例子中，我们希望通过 <code>-n</code> h 或 <code>--name</code> 来指定名字：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">Usage:</span></span><br><span class="line"><span class="string">  cli [options]</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Options:</span></span><br><span class="line"><span class="string">  -n, --name NAME   Set name.</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="keyword">from</span> docopt <span class="keyword">import</span> docopt</span><br><span class="line"></span><br><span class="line">arguments = docopt(__doc__, argv=[<span class="string">'-n'</span>, <span class="string">'Eric'</span>])</span><br><span class="line">print(arguments)</span><br><span class="line"></span><br><span class="line">arguments = docopt(__doc__, argv=[<span class="string">'-nEric'</span>])</span><br><span class="line">print(arguments)</span><br><span class="line"></span><br><span class="line">arguments = docopt(__doc__, argv=[<span class="string">'--name'</span>, <span class="string">'Eric'</span>])</span><br><span class="line">print(arguments)</span><br><span class="line"></span><br><span class="line">arguments = docopt(__doc__, argv=[<span class="string">'--name=Eric'</span>])</span><br><span class="line">print(arguments)</span><br></pre></td></tr></table></figure>
+<p>上面的示例中，我们通过 4 种方式（2 个短选项参数方式和 2 个长选项参数方式）来指定命令行输入，其输出均为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">'--name'</span>: <span class="string">'Eric'</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>需要注意的是：</p>
+<p><code>--input ARG</code>（而不是 <code>--input=ARG</code>）的含义是模糊不清的，因为这不能看出 <code>ARG</code> 究竟是选项参数，<br>还是位置参数。在 <code>docopt</code> 的使用模式中，只有在接口描述中定义了对应选项才会被解释为一个带参数的选项，<br>否则就会被解释为一个选项和一个独立的位置参数。</p>
+<p><code>-f FILE</code> 和 <code>-fFILE</code> 这种写法也有同样的模糊点。后者无法说明这究竟是一系列短选项的集合，<br>还是一个带参数的选项。只有在接口描述中定义了对应选项才会被解释为一个带参数的选项。</p>
+<h3 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h3><p>这里的命令也就是 <code>argparse</code> 中嵌套解析器所要完成的事情，准确的说，对整个命令行程序来说，实现的是子命令。</p>
+<p>在 <code>docopt</code> 中，凡是不符合 <code>--options</code> 或 <code>&lt;arguments&gt;</code> 约定的词，均会被解释为子命令。</p>
+<p>在下面这个例子中，我们支持 <code>create</code> 和 <code>delete</code> 两个子命令，用来创建或删除指定路径。而 <code>delete</code> 命令支持 <code>--recursive</code> 参数来表明是否递归删除指定路径：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">Usage:</span></span><br><span class="line"><span class="string">  cli create</span></span><br><span class="line"><span class="string">  cli delete [--recursive]</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Options:</span></span><br><span class="line"><span class="string">  -r, --recursive   Recursively remove the directory.</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="keyword">from</span> docopt <span class="keyword">import</span> docopt</span><br><span class="line"></span><br><span class="line">arguments = docopt(__doc__)</span><br><span class="line">print(arguments)</span><br></pre></td></tr></table></figure>
+<p>直接指定 <code>delete -r</code>，输出如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ python3 cli.py delete -r</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">'--recursive'</span>: True,</span><br><span class="line"> <span class="string">'create'</span>: False,</span><br><span class="line"> <span class="string">'delete'</span>: True&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="可选元素：-optional-elements"><a href="#可选元素：-optional-elements" class="headerlink" title="可选元素： [optional elements]"></a>可选元素： [optional elements]</h3><p>以中括号“[]”包裹的元素（选项、参数和命令）均会被标记为可选。多个元素放在一对中括号中或各自放在中括号中是等价的。比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: cli [<span class="built_in">command</span> --option &lt;argument&gt;]</span><br></pre></td></tr></table></figure>
+<p>等价于：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: cli [<span class="built_in">command</span>] [--option] [&lt;argument&gt;]</span><br></pre></td></tr></table></figure>
+<h3 id="必填元素：-required-elements"><a href="#必填元素：-required-elements" class="headerlink" title="必填元素： (required elements)"></a>必填元素： (required elements)</h3><p>没被中括号“[]”包裹的所有元素默认都是必填的。但有时候使用小括号“()”将元素包裹住，用以标记必填是有必要的。<br>比如，要将多个互斥元素进行分组：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program (--either-this &lt;and-that&gt; | &lt;or-this&gt;)</span><br></pre></td></tr></table></figure>
+<p>另一个例子是，当出现一个参数时，也要求提供另一个参数，那么就可以这么写：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program [(&lt;one-argument&gt; &lt;another-argument&gt;)]</span><br></pre></td></tr></table></figure>
+<p>这个例子中，<code>&lt;one-argument&gt;</code> 和 <code>&lt;another-argument&gt;</code> 要么都出现，要么都不出现。</p>
+<h3 id="互斥参数：-element-another"><a href="#互斥参数：-element-another" class="headerlink" title="互斥参数： element|another"></a>互斥参数： element|another</h3><p>在 <code>argparse</code> 中要想实现互斥参数，还需要先调用 <code>parser.add_mutually_exclusive_group()</code> 添加互斥组，<br>再在组里添加参数。而在 <code>docopt</code> 中就特别简单，直接使用 <code>|</code> 进行分隔：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program go (--up | --down | --left | --right)</span><br></pre></td></tr></table></figure>
+<p>在上面的示例中，使用小括号“()”来对四个互斥选项分组，要求必填其中一个选项。<br>在下面的示例中，使用中括号“()”来对四个互斥选项分组，可以不填，或填其中一个选项：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program go [--up | --down | --left | --right]</span><br></pre></td></tr></table></figure>
+<p>我们还可以发散一下思路，子命令天然需要互斥，那么除了这种写法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program run [--fast]</span><br><span class="line">       my_program jump [--high]</span><br></pre></td></tr></table></figure>
+<p>使用如下 <code>|</code> 的写法，也是等价的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program (run [--fast] | jump [--high])</span><br></pre></td></tr></table></figure>
+<h3 id="可变参数列表：-element…"><a href="#可变参数列表：-element…" class="headerlink" title="可变参数列表： element…"></a>可变参数列表： element…</h3><p>可变参数列表也就是定义参数可以有多个值。在 <code>argparse</code> 中，我们通过 <code>parser.add_argument(&#39;--foo&#39;, nargs=&#39;?&#39;)</code> 来指定，其中 <code>nargs</code> 可以是数字、<code>?</code>、<code>+</code>、<code>*</code>来表示参数个数。</p>
+<p>在 <code>docopt</code> 中，自然也有相同的能力，使用省略号 <code>...</code> 来实现：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program open &lt;file&gt;...</span><br><span class="line">       my_program move (&lt;from&gt; &lt;to&gt;)...</span><br></pre></td></tr></table></figure>
+<p>若要参数提供 N 个，则写 N 个参数即可，比如下面的示例中要求提供 2 个：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program &lt;file&gt; &lt;file&gt;</span><br></pre></td></tr></table></figure>
+<p>若要参数提供 0 个或多个，则配合中括号“[]”进行定义，如下 3 中定义方式等价：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program [&lt;file&gt;...]</span><br><span class="line">       my_program [&lt;file&gt;]...</span><br><span class="line">       my_program [&lt;file&gt; [&lt;file&gt; ...]]</span><br></pre></td></tr></table></figure>
+<p>若要参数提供 1 个或多个，则可以这么写：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program &lt;file&gt;...</span><br></pre></td></tr></table></figure>
+<p>在下面完整示例中，所获得的 <code>arguments</code> 是 <code>{&#39;&lt;file&gt;&#39;: [&#39;f1&#39;, &#39;f2&#39;]}</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">Usage:</span></span><br><span class="line"><span class="string">  cli &lt;file&gt;...</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="keyword">from</span> docopt <span class="keyword">import</span> docopt</span><br><span class="line"></span><br><span class="line">arguments = docopt(__doc__, argv=[<span class="string">'f1'</span>, <span class="string">'f2'</span>])</span><br><span class="line">print(arguments)</span><br></pre></td></tr></table></figure>
+<h3 id="选项简写：-options"><a href="#选项简写：-options" class="headerlink" title="选项简写： [options]"></a>选项简写： [options]</h3><p>“[options]”用于简写选项，比如下面的示例中定义了 3 个选项：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program [--all --long --human-readable] &lt;path&gt;</span><br><span class="line"></span><br><span class="line">--all             List everything.</span><br><span class="line">--long            Long output.</span><br><span class="line">--human-readable  Display <span class="keyword">in</span> human-readable format.</span><br></pre></td></tr></table></figure>
+<p>可以简写为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program [options] &lt;path&gt;</span><br><span class="line"></span><br><span class="line">--all             List everything.</span><br><span class="line">--long            Long output.</span><br><span class="line">--human-readable  Display <span class="keyword">in</span> human-readable format.</span><br></pre></td></tr></table></figure>
+<p>如果一个模式中有多个选项，那么这会很有用。</p>
+<p>另外，如果选项包含长短选项，那么也可以用它们中的任意一个写在模式中，比如下面的示例的模式中均使用短选项：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program [-alh] &lt;path&gt;</span><br><span class="line"></span><br><span class="line">-a, --all             List everything.</span><br><span class="line">-l, --long            Long output.</span><br><span class="line">-h, --human-readable  Display <span class="keyword">in</span> human-readable format.</span><br></pre></td></tr></table></figure>
+<h3 id="–"><a href="#–" class="headerlink" title="[–]"></a>[–]</h3><p>当双破折号“–”不是选项时，通常用于分隔选项和位置参数，以便处理例如将文件名误认为选项的情况。<br>为了支持此约定，需要在位置参数前添加 <code>[--]</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program [options] [--] &lt;file&gt;...</span><br></pre></td></tr></table></figure>
+<h3 id><a href="#" class="headerlink" title="[-]"></a>[-]</h3><p>当单破折号“-”不是选项时，通常用于表示程序应处理 <code>stdin</code>，而非文件。为了支持此约定，需要在使用模式中加入 <code>[-]</code>。</p>
+<h3 id="选项描述"><a href="#选项描述" class="headerlink" title="选项描述"></a>选项描述</h3><p>选项描述就是描述一系列选项参数的模式。如果使用模式中的选项定义是清晰的，那么选项描述就是可选的。</p>
+<p>选项描述可以定义如下内容：</p>
+<ul>
+<li>短选项和长选项代表相同含义</li>
+<li>带参数的选项</li>
+<li>有默认值的选项参数</li>
+</ul>
+<p>选项描述的每一行需要以 <code>-</code> 或 <code>--</code> 开头（不算空格），比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Options:</span><br><span class="line">  --verbose   <span class="comment"># 好</span></span><br><span class="line">  -o FILE     <span class="comment"># 好</span></span><br><span class="line">Other: --bad  <span class="comment"># 坏, 没有以 "-" 开头</span></span><br></pre></td></tr></table></figure>
+<p>选项描述中，使用空格或“=”来连接选项和参数，以定义带选项的参数。参数可以使用<code>&lt;Arg&gt;</code>的形式，<br>或是使用<code>ARG</code>大写字母的形式。可用逗号“,”来分隔长短选项。比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-o FILE --output=FILE       <span class="comment"># 没有逗号 长选项使用 "=" 分隔</span></span><br><span class="line">-i &lt;file&gt;, --input &lt;file&gt;   <span class="comment"># 有逗号, 长选项使用空格分隔</span></span><br></pre></td></tr></table></figure>
+<p>选项描述中每个选项定义和说明之间要有两个空格，比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">--verbose MORE text.    <span class="comment"># 坏, 会被认为是带参数 MORE 的选项</span></span><br><span class="line">                        <span class="comment"># --version 和 MORE text. 之间应该有2个空格</span></span><br><span class="line">-q        Quit.         <span class="comment"># 好</span></span><br><span class="line">-o FILE   Output file.  <span class="comment"># 好</span></span><br><span class="line">--stdout  Use stdout.   <span class="comment"># 好，2个空格</span></span><br></pre></td></tr></table></figure>
+<p>选项描述中在说明中使用 <code>[default: &lt;default-value&gt;]</code> 来给带参数的选项赋以默认值，比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">--coefficient=K  The K coefficient [default: 2.95]</span><br><span class="line">--output=FILE    Output file [default: test.txt]</span><br><span class="line">--directory=DIR  Some directory [default: ./]</span><br></pre></td></tr></table></figure>
+<h2 id="小节"><a href="#小节" class="headerlink" title="小节"></a>小节</h2><p>关于 <code>docopt</code> 的方方面面我们都了解的差不多了，回过头来看，对于命令行元信息的定义，它比 <code>argparse</code> 要来的更加简洁。<br><code>argparse</code> 像是命令式编程，调用一个个的函数逐步将命令行元信息定义清楚；而 <code>docopt</code> 则像是声明式编程，通过声明定义命令行元信息。<br>两者站在的维度不同，编程的套路也不尽相同，甚是有趣。</p>
+<p>了解了这么多，也该练练手了。在下篇文章中，我们仍然会以 <code>git</code> 命令作为实战项目，看看如何使用 <code>docopt</code> 来实现 <code>git</code> 命令。</p>
+<h2 id="相关文章"><a href="#相关文章" class="headerlink" title="相关文章"></a>相关文章</h2><ul>
+<li><a href="/2019/08/13/Python-命令行之旅：初探-argparse/" title="Python 命令行之旅：初探 argparse">Python 命令行之旅：初探 argparse</a></li>
+<li><a href="/2019/08/20/Python-命令行之旅：深入-argparse（一）/" title="Python 命令行之旅：深入 argparse（一）">Python 命令行之旅：深入 argparse（一）</a></li>
+<li><a href="/2019/08/27/Python-命令行之旅：深入-argparse（二）/" title="Python 命令行之旅：深入 argparse（二）">Python 命令行之旅：深入 argparse（二）</a></li>
+<li><a href="/2019/09/04/Python-命令行之旅：使用-argparse-实现-git-命令/" title="Python 命令行之旅：使用 argparse 实现 git 命令">Python 命令行之旅：使用 argparse 实现 git 命令</a></li>
+<li><a href="/2019/10/09/Python-命令行之旅：初探-docopt/" title="Python 命令行之旅：初探 docopt">Python 命令行之旅：初探 docopt</a></li>
+<li><a href="/2019/10/15/Python-命令行之旅：深入-docopt/" title="Python 命令行之旅：深入 docopt">Python 命令行之旅：深入 docopt</a></li>
+<li><a href="/2019/10/30/Python-命令行之旅：使用-docopt-实现-git-命令/" title="Python 命令行之旅：使用 docopt 实现 git 命令">Python 命令行之旅：使用 docopt 实现 git 命令</a></li>
+<li><a href="/2019/11/04/Python-命令行之旅：初探-click/" title="Python 命令行之旅：初探 click">Python 命令行之旅：初探 click</a></li>
+<li><a href="/2019/11/11/Python-命令行之旅：深入-click（一）/" title="Python 命令行之旅：深入 click（一）">Python 命令行之旅：深入 click（一）</a></li>
+<li><a href="/2019/11/17/Python-命令行之旅：深入-click（二）/" title="Python 命令行之旅：深入 click（二）">Python 命令行之旅：深入 click（二）</a></li>
+<li><a href="/2019/11/25/Python-命令行之旅：深入-click（三）/" title="Python 命令行之旅：深入 click（三）">Python 命令行之旅：深入 click（三）</a></li>
+<li><a href="/2019/12/09/Python-命令行之旅：深入-click（四）/" title="Python 命令行之旅：深入 click（四）">Python 命令行之旅：深入 click（四）</a></li>
+<li><a href="/2019/12/14/Python-命令行之旅：使用-click-实现-git-命令/" title="Python 命令行之旅：使用 click 实现 git 命令">Python 命令行之旅：使用 click 实现 git 命令</a></li>
+<li><a href="/2019/12/22/Python-命令行之旅：初探-fire/" title="Python 命令行之旅：初探 fire">Python 命令行之旅：初探 fire</a></li>
+<li><a href="/2019/12/29/Python-命令行之旅：深入-fire（一）/" title="Python 命令行之旅：深入 fire（一）">Python 命令行之旅：深入 fire（一）</a></li>
+<li><a href="/2020/01/05/Python-命令行之旅：深入-fire（二）/" title="Python 命令行之旅：深入 fire（二）">Python 命令行之旅：深入 fire（二）</a></li>
+<li><a href="/2020/01/12/Python-命令行之旅：使用-fire-实现-git-命令/" title="Python 命令行之旅：使用 fire 实现 git 命令">Python 命令行之旅：使用 fire 实现 git 命令</a></li>
+<li><a href="/2020/02/09/Python-命令行之旅：argparse、docopt、click-和-fire-总结篇/" title="Python 命令行之旅：argparse、docopt、click 和 fire 总结篇">Python 命令行之旅：argparse、docopt、click 和 fire 总结篇</a></li>
+<li><a href="/2020/07/02/Python-命令行大乱斗/" title="Python 命令行大乱斗">Python 命令行大乱斗</a>
+</li>
+</ul>
+<div align="center"><br><img src="/images/wechatPublicAccount.png" alt><br></div>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/命令行/" rel="tag"># 命令行</a>
+              <a href="/tags/docopt/" rel="tag"># docopt</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/10/09/Python-命令行之旅：初探-docopt/" rel="prev" title="Python 命令行之旅：初探 docopt">
+      <i class="fa fa-chevron-left"></i> Python 命令行之旅：初探 docopt
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/20/Windows-2003上-SaltStack-Salt-和-psutil-可能存在的问题及解决/" rel="next" title="Windows 2003上 SaltStack/Salt 和 psutil 可能存在的问题及解决">
+      Windows 2003上 SaltStack/Salt 和 psutil 可能存在的问题及解决 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用模式"><span class="nav-number">2.</span> <span class="nav-text">使用模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#位置参数："><span class="nav-number">2.1.</span> <span class="nav-text">位置参数： </span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选项参数：-o-–option"><span class="nav-number">2.2.</span> <span class="nav-text">选项参数： -o –option</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命令"><span class="nav-number">2.3.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可选元素：-optional-elements"><span class="nav-number">2.4.</span> <span class="nav-text">可选元素： [optional elements]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#必填元素：-required-elements"><span class="nav-number">2.5.</span> <span class="nav-text">必填元素： (required elements)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#互斥参数：-element-another"><span class="nav-number">2.6.</span> <span class="nav-text">互斥参数： element|another</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可变参数列表：-element…"><span class="nav-number">2.7.</span> <span class="nav-text">可变参数列表： element…</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选项简写：-options"><span class="nav-number">2.8.</span> <span class="nav-text">选项简写： [options]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#–"><span class="nav-number">2.9.</span> <span class="nav-text">[–]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#null"><span class="nav-number">2.10.</span> <span class="nav-text">[-]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选项描述"><span class="nav-number">2.11.</span> <span class="nav-text">选项描述</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小节"><span class="nav-number">3.</span> <span class="nav-text">小节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关文章"><span class="nav-number">4.</span> <span class="nav-text">相关文章</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Prodesire"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Prodesire</p>
+  <div class="site-description" itemprop="description">Prodesire 的博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/prodesire" title="GitHub → https://github.com/prodesire" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/prodesire" title="知乎 → https://www.zhihu.com/people/prodesire" rel="noopener" target="_blank"><i class="zhihu fa-fw"></i>知乎</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://codingcat.top/" title="https://codingcat.top/" rel="noopener" target="_blank">编程猫</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Prodesire</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">200k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:02</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz","app_key":"YcMCWnPYP6XWogWEbRBSNbfI","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz',
+      appKey     : 'YcMCWnPYP6XWogWEbRBSNbfI',
+      placeholder: "把你的想法告诉我吧~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"prodesire.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言在本系列前面几篇文章中，我们分别介绍了 argparse 和 docopt 的主要功能和用法。它们各具特色，都能出色地完成命令行任务。argparse 是面向过程的，需要先设置解析器，再定义参数，再解析命令行，最后实现业务逻辑。而 docopt 先用声明式的语法定义出参数，再过程式地解析命令行和实现业务逻辑。在一些人看来，这些方式都不够优雅。 而今天要介绍的 click 则是用一种你很熟知的方">
+<meta name="keywords" content="Python,命令行,click">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 命令行之旅：初探 click">
+<meta property="og:url" content="http://prodesire.cn/2019/11/04/Python-命令行之旅：初探-click/index.html">
+<meta property="og:site_name" content="Prodesire">
+<meta property="og:description" content="前言在本系列前面几篇文章中，我们分别介绍了 argparse 和 docopt 的主要功能和用法。它们各具特色，都能出色地完成命令行任务。argparse 是面向过程的，需要先设置解析器，再定义参数，再解析命令行，最后实现业务逻辑。而 docopt 先用声明式的语法定义出参数，再过程式地解析命令行和实现业务逻辑。在一些人看来，这些方式都不够优雅。 而今天要介绍的 click 则是用一种你很熟知的方">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+<meta property="og:updated_time" content="2020-07-24T15:00:04.356Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python 命令行之旅：初探 click">
+<meta name="twitter:description" content="前言在本系列前面几篇文章中，我们分别介绍了 argparse 和 docopt 的主要功能和用法。它们各具特色，都能出色地完成命令行任务。argparse 是面向过程的，需要先设置解析器，再定义参数，再解析命令行，最后实现业务逻辑。而 docopt 先用声明式的语法定义出参数，再过程式地解析命令行和实现业务逻辑。在一些人看来，这些方式都不够优雅。 而今天要介绍的 click 则是用一种你很熟知的方">
+<meta name="twitter:image" content="http://prodesire.cn/images/wechatPublicAccount.png">
+
+<link rel="canonical" href="http://prodesire.cn/2019/11/04/Python-命令行之旅：初探-click/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Python 命令行之旅：初探 click | Prodesire</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?65299c312c93ea8fc5dd3786947453bf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Prodesire" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Prodesire</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-top">
+
+    <a href="/top" rel="section"><i class="fa fa-signal fa-fw"></i>top</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/prodesire" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://prodesire.cn/2019/11/04/Python-命令行之旅：初探-click/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Prodesire">
+      <meta itemprop="description" content="Prodesire 的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Prodesire">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python 命令行之旅：初探 click
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-04 20:42:55" itemprop="dateCreated datePublished" datetime="2019-11-04T20:42:55+08:00">2019-11-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-24 23:00:04" itemprop="dateModified" datetime="2020-07-24T23:00:04+08:00">2020-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/命令行/" itemprop="url" rel="index"><span itemprop="name">命令行</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/11/04/Python-命令行之旅：初探-click/" class="post-meta-item leancloud_visitors" data-flag-title="Python 命令行之旅：初探 click" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/11/04/Python-命令行之旅：初探-click/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/04/Python-命令行之旅：初探-click/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在本系列前面几篇文章中，我们分别介绍了 <code>argparse</code> 和 <code>docopt</code> 的主要功能和用法。它们各具特色，都能出色地完成命令行任务。<code>argparse</code> 是面向过程的，需要先设置解析器，再定义参数，再解析命令行，最后实现业务逻辑。而 <code>docopt</code> 先用声明式的语法定义出参数，再过程式地解析命令行和实现业务逻辑。在一些人看来，这些方式都不够优雅。</p>
+<p>而今天要介绍的 <a href="https://click.palletsprojects.com/" target="_blank" rel="noopener">click</a> 则是用一种你很熟知的方式来玩转命令行。命令行程序本质上是定义参数和处理参数，而处理参数的逻辑一定是与所定义的参数有关联的。那可不可以用函数和装饰器来实现处理参数逻辑与定义参数的关联呢？而 <code>click</code> 正好就是以这种方式来使用的。</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">本系列文章默认使用 Python 3 作为解释器进行讲解。</span><br><span class="line">若你仍在使用 Python 2，请注意两者之间语法和库的使用差异哦~</span><br></pre></td></tr></table></figure>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p><a href="https://click.palletsprojects.com/" target="_blank" rel="noopener">click</a> 是一个以尽可能少的代码、以组合的方式创建优美的命令行程序的 Python 包。它有很高的可配置性，同时也能开箱即用。</p>
+<p>它旨在让编写命令行工具的过程既快速又有趣，还能防止由于无法实现预期的 CLI API 所产生挫败感。它有如下三个特点：</p>
+<ul>
+<li>任意嵌套命令</li>
+<li>自动生成帮助</li>
+<li>支持运行时延迟加载子命令</li>
+</ul>
+<h2 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h2><h3 id="业务逻辑"><a href="#业务逻辑" class="headerlink" title="业务逻辑"></a>业务逻辑</h3><p>首先定义业务逻辑，是不是感觉到有些难以置信呢？</p>
+<p>不论是 <code>argparse</code> 还是 <code>docopt</code>，业务逻辑都是被放在最后一步，但 <code>click</code> 却是放在第一步。细想想 <code>click</code> 的这种方式才更符合人的思维吧？不论用什么命令行框架，我们最终关心的就是实现业务逻辑，其他的能省则省。</p>
+<p>我们以官方示例为例，来介绍 <code>click</code> 的用法和哲学。假设命令行程序的输入是 <code>name</code> 和 <code>count</code>，功能是打印指定次数的名字。</p>
+<p>那么在 <code>hello.py</code> 中，很容易写出如下代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(count, name)</span>:</span></span><br><span class="line">    <span class="string">"""Simple program that greets NAME for a total of COUNT times."""</span></span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> range(count):</span><br><span class="line">        click.echo(<span class="string">'Hello %s!'</span> % name)</span><br></pre></td></tr></table></figure>
+<p>这段代码的逻辑很简单，就是循环 <code>count</code> 次，使用 <code>click.echo</code> 打印 <code>name</code>。其中，<code>click.echo</code> 和 <code>print</code> 的作用相似，但功能更加强大，能处理好 Unicode 和 二进制数据的情况。</p>
+<h3 id="定义参数"><a href="#定义参数" class="headerlink" title="定义参数"></a>定义参数</h3><p>很显然，我们需要针对 <code>count</code> 和 <code>name</code> 来定义它们所对应的参数信息。</p>
+<ul>
+<li><code>count</code> 对应为命令行选项 <code>--count</code>，类型为数字，我们希望在不提供参数时，其默认值是 1</li>
+<li><code>name</code> 对应为命令行选项 <code>--name</code>，类型为字符串，我们希望在不提供参数时，能给人提示</li>
+</ul>
+<p>使用 <code>click</code>，就可以写成下面这样：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> click <span class="keyword">import</span> click</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--count', default=1, help='Number of greetings.')</span></span><br><span class="line"><span class="meta">@click.option('--name', prompt='Your name',</span></span><br><span class="line">              help=<span class="string">'The person to greet.'</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(count, name)</span>:</span></span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+<p>在上面的示例中：</p>
+<ul>
+<li>使用装饰器的方式，即定义了参数，又将之与处理逻辑绑定，这真是优雅。和 <code>argparse</code>、<code>docopt</code> 比起来，就少了一步绑定过程</li>
+<li>使用 <code>click.command</code> 表示 <code>hello</code> 是对命令的处理</li>
+<li>使用 <code>click.option</code> 来定义参数选项<ul>
+<li>对于 <code>--count</code> 来说，使用 <code>default</code> 来指定默认值。而由于默认值是数字，进而暗示 <code>--count</code> 选项的类型为数字</li>
+<li>对于 <code>--name</code> 来说，使用 <code>prompt</code> 来指定未输入该选项时的提示语</li>
+<li>使用 <code>help</code> 来指定帮助信息</li>
+</ul>
+</li>
+</ul>
+<p>不论是装饰器的方式、还是各种默认行为，<code>click</code> 都是像它的介绍所说的那样，让人尽可能少地编写代码，让整个过程变得快速而有趣。</p>
+<h3 id="代码梳理"><a href="#代码梳理" class="headerlink" title="代码梳理"></a>代码梳理</h3><p>使用 <code>click</code> 的方式非常简单，我们将上文的代码汇总下，以有一个更清晰的认识：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># hello.py</span></span><br><span class="line"><span class="keyword">import</span> click</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option('--count', default=1, help='Number of greetings.')</span></span><br><span class="line"><span class="meta">@click.option('--name', prompt='Your name',</span></span><br><span class="line">              help=<span class="string">'The person to greet.'</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(count, name)</span>:</span></span><br><span class="line">    <span class="string">"""Simple program that greets NAME for a total of COUNT times."""</span></span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> range(count):</span><br><span class="line">        click.echo(<span class="string">'Hello %s!'</span> % name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    hello()</span><br></pre></td></tr></table></figure>
+<p>若我们指定次数和名字：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ python3 hello.py --count 2 --name Eric</span><br><span class="line">Hello Eric!</span><br><span class="line">Hello Eric!</span><br></pre></td></tr></table></figure>
+<p>若我们什么都不指定，则会提示输入名字，并默认输出一次：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ python3 hello.py</span><br><span class="line">Your name: Eric</span><br><span class="line">Hello Eric!</span><br></pre></td></tr></table></figure>
+<p>我们还可以通过 <code>--help</code> 参数查看自动生成的帮助信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Usage: hello.py [OPTIONS]</span><br><span class="line"></span><br><span class="line">  Simple program that greets NAME <span class="keyword">for</span> a total of COUNT <span class="built_in">times</span>.</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  --count INTEGER  Number of greetings.</span><br><span class="line">  --name TEXT      The person to greet.</span><br><span class="line">  --<span class="built_in">help</span>           Show this message and <span class="built_in">exit</span>.</span><br></pre></td></tr></table></figure>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><code>click</code> 的思路非常简单，定义处理函数，通过它的装饰器来定义参数。使用装饰器的绝妙之处就在于把定义和绑定这两个步骤合为一个步骤，使得整个过程变得如丝般顺滑。</p>
+<p><code>click</code> 除了以 <code>Pythonic</code> 的方式让命令行程序的实现变得更加优雅和好用外，还提供了比 <code>argparse</code> 和 <code>docopt</code> 都要强大的功能。在接下来几节中，我们将会逐步揭开它的面纱。</p>
+<h2 id="相关文章"><a href="#相关文章" class="headerlink" title="相关文章"></a>相关文章</h2><ul>
+<li><a href="/2019/08/13/Python-命令行之旅：初探-argparse/" title="Python 命令行之旅：初探 argparse">Python 命令行之旅：初探 argparse</a></li>
+<li><a href="/2019/08/20/Python-命令行之旅：深入-argparse（一）/" title="Python 命令行之旅：深入 argparse（一）">Python 命令行之旅：深入 argparse（一）</a></li>
+<li><a href="/2019/08/27/Python-命令行之旅：深入-argparse（二）/" title="Python 命令行之旅：深入 argparse（二）">Python 命令行之旅：深入 argparse（二）</a></li>
+<li><a href="/2019/09/04/Python-命令行之旅：使用-argparse-实现-git-命令/" title="Python 命令行之旅：使用 argparse 实现 git 命令">Python 命令行之旅：使用 argparse 实现 git 命令</a></li>
+<li><a href="/2019/10/09/Python-命令行之旅：初探-docopt/" title="Python 命令行之旅：初探 docopt">Python 命令行之旅：初探 docopt</a></li>
+<li><a href="/2019/10/15/Python-命令行之旅：深入-docopt/" title="Python 命令行之旅：深入 docopt">Python 命令行之旅：深入 docopt</a></li>
+<li><a href="/2019/10/30/Python-命令行之旅：使用-docopt-实现-git-命令/" title="Python 命令行之旅：使用 docopt 实现 git 命令">Python 命令行之旅：使用 docopt 实现 git 命令</a></li>
+<li><a href="/2019/11/04/Python-命令行之旅：初探-click/" title="Python 命令行之旅：初探 click">Python 命令行之旅：初探 click</a></li>
+<li><a href="/2019/11/11/Python-命令行之旅：深入-click（一）/" title="Python 命令行之旅：深入 click（一）">Python 命令行之旅：深入 click（一）</a></li>
+<li><a href="/2019/11/17/Python-命令行之旅：深入-click（二）/" title="Python 命令行之旅：深入 click（二）">Python 命令行之旅：深入 click（二）</a></li>
+<li><a href="/2019/11/25/Python-命令行之旅：深入-click（三）/" title="Python 命令行之旅：深入 click（三）">Python 命令行之旅：深入 click（三）</a></li>
+<li><a href="/2019/12/09/Python-命令行之旅：深入-click（四）/" title="Python 命令行之旅：深入 click（四）">Python 命令行之旅：深入 click（四）</a></li>
+<li><a href="/2019/12/14/Python-命令行之旅：使用-click-实现-git-命令/" title="Python 命令行之旅：使用 click 实现 git 命令">Python 命令行之旅：使用 click 实现 git 命令</a></li>
+<li><a href="/2019/12/22/Python-命令行之旅：初探-fire/" title="Python 命令行之旅：初探 fire">Python 命令行之旅：初探 fire</a></li>
+<li><a href="/2019/12/29/Python-命令行之旅：深入-fire（一）/" title="Python 命令行之旅：深入 fire（一）">Python 命令行之旅：深入 fire（一）</a></li>
+<li><a href="/2020/01/05/Python-命令行之旅：深入-fire（二）/" title="Python 命令行之旅：深入 fire（二）">Python 命令行之旅：深入 fire（二）</a></li>
+<li><a href="/2020/01/12/Python-命令行之旅：使用-fire-实现-git-命令/" title="Python 命令行之旅：使用 fire 实现 git 命令">Python 命令行之旅：使用 fire 实现 git 命令</a></li>
+<li><a href="/2020/02/09/Python-命令行之旅：argparse、docopt、click-和-fire-总结篇/" title="Python 命令行之旅：argparse、docopt、click 和 fire 总结篇">Python 命令行之旅：argparse、docopt、click 和 fire 总结篇</a></li>
+<li><a href="/2020/07/02/Python-命令行大乱斗/" title="Python 命令行大乱斗">Python 命令行大乱斗</a>
+</li>
+</ul>
+<div align="center"><br><img src="/images/wechatPublicAccount.png" alt><br></div>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/命令行/" rel="tag"># 命令行</a>
+              <a href="/tags/click/" rel="tag"># click</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/10/30/Python-命令行之旅：使用-docopt-实现-git-命令/" rel="prev" title="Python 命令行之旅：使用 docopt 实现 git 命令">
+      <i class="fa fa-chevron-left"></i> Python 命令行之旅：使用 docopt 实现 git 命令
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/11/Python-命令行之旅：深入-click（一）/" rel="next" title="Python 命令行之旅：深入 click（一）">
+      Python 命令行之旅：深入 click（一） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">2.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快速开始"><span class="nav-number">3.</span> <span class="nav-text">快速开始</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#业务逻辑"><span class="nav-number">3.1.</span> <span class="nav-text">业务逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义参数"><span class="nav-number">3.2.</span> <span class="nav-text">定义参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码梳理"><span class="nav-number">3.3.</span> <span class="nav-text">代码梳理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">4.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关文章"><span class="nav-number">5.</span> <span class="nav-text">相关文章</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Prodesire"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Prodesire</p>
+  <div class="site-description" itemprop="description">Prodesire 的博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/prodesire" title="GitHub → https://github.com/prodesire" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/prodesire" title="知乎 → https://www.zhihu.com/people/prodesire" rel="noopener" target="_blank"><i class="zhihu fa-fw"></i>知乎</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://codingcat.top/" title="https://codingcat.top/" rel="noopener" target="_blank">编程猫</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Prodesire</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">200k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:02</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz","app_key":"YcMCWnPYP6XWogWEbRBSNbfI","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'r5ofSrw8CXJUtyUOC54bkMuy-gzGzoHsz',
+      appKey     : 'YcMCWnPYP6XWogWEbRBSNbfI',
+      placeholder: "把你的想法告诉我吧~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
