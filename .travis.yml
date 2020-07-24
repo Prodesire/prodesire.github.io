@@ -1,6 +1,7 @@
 language: node_js
 
-node_js: stable
+node_js:
+  - 10
 
 # 缓存依赖
 cache:
@@ -17,7 +18,6 @@ install:
 
 # 构建脚本
 script:
-  - hexo douban -bm
   - hexo g
   - cp CNAME public/
 
