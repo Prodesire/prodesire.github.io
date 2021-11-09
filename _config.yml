@@ -103,7 +103,7 @@ plugin:
 feed:
   type: atom
   path: atom.xml
-  limit: 20
+  limit: false
 
 # 豆瓣
 douban:
